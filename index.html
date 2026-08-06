@@ -16,7 +16,7 @@
     .btn-main { background: #ff69b4; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-main:hover { background: #ff4797; }
     .btn-sub { background: #f0f0f0; color: #555; border: none; cursor: pointer; }
-    .auth-links { display: flex; justify-content: space-between; font-size: 12px; }
+    .auth-links { display: flex; justify-content: space-between; font-size: 12px; margin-top: 10px; }
     .auth-links a { color: #ff69b4; text-decoration: none; cursor: pointer; }
     table { width: 100%; margin-top: 15px; border-collapse: collapse; }
     td { padding: 8px 4px; }
@@ -74,11 +74,13 @@
       <!-- Login View -->
       <div id="loginForm">
         <h1>✨ Welcome! Login ✨</h1>
-        <input type="text" id="loginUsername" placeholder="Username">
-        <img class="cat-img" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" alt="Cute Cat">
-        <p style="text-align:center; font-size:13px; color:#666;">Meowdy! Ready to save some treats? 🐾</p>
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button class="btn-main" onclick="handleLogin()">Login 🔑</button>
+        <form onsubmit="event.preventDefault(); handleLogin();">
+          <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username">
+          <img class="cat-img" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" alt="Cute Cat">
+          <p style="text-align:center; font-size:13px; color:#666;">Meowdy! Ready to save some treats? 🐾</p>
+          <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
+          <button type="submit" class="btn-main">Login 🔑</button>
+        </form>
         <div class="auth-links">
           <a onclick="showView('signupForm')">Create Account</a>
           <a onclick="showView('forgotForm')">Forgot Password?</a>
@@ -88,37 +90,45 @@
       <!-- Sign Up View -->
       <div id="signupForm" class="hidden">
         <h1>🌸 Create Account 🌸</h1>
-        <input type="text" id="signUpUsername" placeholder="Choose Username">
-        <input type="email" id="signUpEmail" placeholder="Your Email Address">
-        <input type="password" id="signUpPassword" placeholder="Choose Password">
-        <button class="btn-main" onclick="sendSignUpCode()">Send Verification Code 📧</button>
-        <button class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
+        <form onsubmit="event.preventDefault(); sendSignUpCode();">
+          <input type="text" id="signUpUsername" placeholder="Choose Username" required>
+          <input type="email" id="signUpEmail" placeholder="Your Email Address" required>
+          <input type="password" id="signUpPassword" placeholder="Choose Password" required>
+          <button type="submit" class="btn-main">Send Verification Code 📧</button>
+        </form>
+        <button type="button" class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
       </div>
 
       <!-- Verify Code View -->
       <div id="verifySignUpForm" class="hidden">
         <h1>📩 Verify Email 📩</h1>
         <p style="text-align:center; font-size:13px; color:#666;">Enter the 6-digit code sent to your email.</p>
-        <input type="text" id="verifySignUpCode" placeholder="6-digit code">
-        <button class="btn-main" onclick="completeSignUp()">Verify & Create Account 🎉</button>
-        <button class="btn-sub" onclick="showView('signupForm')">Back</button>
+        <form onsubmit="event.preventDefault(); completeSignUp();">
+          <input type="text" id="verifySignUpCode" placeholder="6-digit code" required>
+          <button type="submit" class="btn-main">Verify & Create Account 🎉</button>
+        </form>
+        <button type="button" class="btn-sub" onclick="showView('signupForm')">Back</button>
       </div>
 
       <!-- Forgot Password View -->
       <div id="forgotForm" class="hidden">
         <h1>🔑 Reset Password 🔑</h1>
-        <input type="email" id="forgotEmail" placeholder="Enter your registered email">
-        <button class="btn-main" onclick="sendResetCode()">Send Reset Code 📧</button>
-        <button class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
+        <form onsubmit="event.preventDefault(); sendResetCode();">
+          <input type="email" id="forgotEmail" placeholder="Enter your registered email" required>
+          <button type="submit" class="btn-main">Send Reset Code 📧</button>
+        </form>
+        <button type="button" class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
       </div>
 
       <!-- Complete Password Reset View -->
       <div id="resetPasswordForm" class="hidden">
         <h1>🔐 Enter New Password 🔐</h1>
-        <input type="text" id="resetCode" placeholder="6-digit verification code">
-        <input type="password" id="newPassword" placeholder="New Password">
-        <button class="btn-main" onclick="completePasswordReset()">Update Password ✨</button>
-        <button class="btn-sub" onclick="showView('loginForm')">Cancel</button>
+        <form onsubmit="event.preventDefault(); completePasswordReset();">
+          <input type="text" id="resetCode" placeholder="6-digit verification code" required>
+          <input type="password" id="newPassword" placeholder="New Password" required>
+          <button type="submit" class="btn-main">Update Password ✨</button>
+        </form>
+        <button type="button" class="btn-sub" onclick="showView('loginForm')">Cancel</button>
       </div>
     </div>
 
@@ -131,81 +141,83 @@
 
       <h2>🎀 Budget Planner 🎀</h2>
 
-      <label style="font-size:12px; color:#666;">Date:</label>
-      <input type="date" id="d">
+      <form id="budgetForm" onsubmit="event.preventDefault(); save();">
+        <label style="font-size:12px; color:#666;">Date:</label>
+        <input type="date" id="d">
 
-      <label style="font-size:12px; color:#666;">Period:</label>
-      <select id="p">
-        <option value="Weekly">Weekly</option>
-        <option value="Fortnightly">Fortnightly</option>
-        <option value="Monthly">Monthly</option>
-      </select>
+        <label style="font-size:12px; color:#666;">Period:</label>
+        <select id="p">
+          <option value="Weekly">Weekly</option>
+          <option value="Fortnightly">Fortnightly</option>
+          <option value="Monthly">Monthly</option>
+        </select>
 
-      <label style="font-size:12px; color:#666;">Income Amount ($):</label>
-      <input type="number" id="i" value="0" placeholder="Income Amount">
+        <label style="font-size:12px; color:#666;">Income Amount ($):</label>
+        <input type="number" id="i" value="0" placeholder="Income Amount">
 
-      <h3>Expenses</h3>
-      <table>
-        <tr>
-          <td colspan="2"><strong>📱 Subscriptions</strong></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Netflix/Streaming</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Gym / Fitness</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>✏️ Custom: <input type="text" id="sub_other_title" class="custom-input" placeholder="Name..."></td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
+        <h3>Expenses</h3>
+        <table>
+          <tr>
+            <td colspan="2"><strong>📱 Subscriptions</strong></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Netflix/Streaming</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Gym / Fitness</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>✏️ Custom: <input type="text" id="sub_other_title" class="custom-input" placeholder="Name..."></td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
 
-        <tr>
-          <td colspan="2"><strong>🚗 Transport</strong></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Fuel / Public Transport</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>✏️ Custom: <input type="text" id="trans_other_title" class="custom-input" placeholder="Name..."></td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
+          <tr>
+            <td colspan="2"><strong>🚗 Transport</strong></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Fuel / Public Transport</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>✏️ Custom: <input type="text" id="trans_other_title" class="custom-input" placeholder="Name..."></td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
 
-        <tr>
-          <td colspan="2"><strong>🏠 Bills</strong></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Electricity / Power</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Rent / Mortgage</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Gas</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>Water</td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-        <tr class="sub-row">
-          <td>✏️ Custom: <input type="text" id="bills_other_title" class="custom-input" placeholder="Name..."></td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
+          <tr>
+            <td colspan="2"><strong>🏠 Bills</strong></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Electricity / Power</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Rent / Mortgage</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Gas</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>Water</td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+          <tr class="sub-row">
+            <td>✏️ Custom: <input type="text" id="bills_other_title" class="custom-input" placeholder="Name..."></td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
 
-        <tr>
-          <td><strong>🍲 Eating Out</strong></td>
-          <td><input class="e" type="number" value="0"></td>
-        </tr>
-      </table>
+          <tr>
+            <td><strong>🍲 Eating Out</strong></td>
+            <td><input class="e" type="number" value="0"></td>
+          </tr>
+        </table>
 
-      <p class="sum">💖 Remaining: $<span id="b">0.00</span></p>
-      <button class="btn-main" id="saveBtn" onclick="save()">💾 Save Budget</button>
+        <p class="sum">💖 Remaining: $<span id="b">0.00</span></p>
+        <button type="submit" class="btn-main" id="saveBtn">💾 Save Budget</button>
+      </form>
 
       <h2>📜 Saved & Shared History</h2>
       <div id="h"></div>
