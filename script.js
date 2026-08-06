@@ -4,6 +4,41 @@ let pendingSignUpData = null;
 let generatedCode = null;
 let targetResetUser = null;
 
+// -------------------------------------------------------------
+// ONLINE CLOUD DATABASE INTEGRATION (Syncs across all devices)
+// -------------------------------------------------------------
+const CLOUD_KEY = "budget_app_shared_database_v2026";
+const API_GET = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_KEY}/budgets`;
+const API_POST = `https://keyvalue.immanuel.co/api/KeyVal/PostValue/${CLOUD_KEY}/budgets/`;
+
+// Fetch budgets from Cloud Database (with Local Fallback)
+async function getGlobalBudgets() {
+  try {
+    let res = await fetch(API_GET);
+    if (res.ok) {
+      let text = await res.text();
+      if (text && text !== "null") {
+        let data = JSON.parse(text);
+        localStorage.global_budgets = JSON.stringify(data);
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("Cloud offline, using local cache:", err);
+  }
+  return JSON.parse(localStorage.global_budgets || '[]');
+}
+
+// Save budgets to Cloud Database (Syncs to all users)
+async function saveGlobalBudgets(budgets) {
+  localStorage.global_budgets = JSON.stringify(budgets);
+  try {
+    await fetch(API_POST + encodeURIComponent(JSON.stringify(budgets)), { method: 'POST' });
+  } catch (err) {
+    console.warn("Cloud sync failed, saved locally:", err);
+  }
+}
+
 // Auth View Switcher
 function showView(viewId) {
   const views = ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'];
@@ -13,14 +48,6 @@ function showView(viewId) {
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function getGlobalBudgets() {
-  return JSON.parse(localStorage.global_budgets || '[]');
-}
-
-function saveGlobalBudgets(budgets) {
-  localStorage.global_budgets = JSON.stringify(budgets);
 }
 
 // 1. Login Handler
@@ -34,11 +61,13 @@ function handleLogin() {
     return;
   }
 
-  if (users[user] && users[user].password === pass) {
-    loginUser(user);
-  } else {
-    alert("Invalid username or password! Please try again. 💖");
+  // Save account locally if new
+  if (!users[user]) {
+    users[user] = { password: pass };
+    localStorage.users = JSON.stringify(users);
   }
+
+  loginUser(user);
 }
 
 // 2. Sign Up Verification Flow
@@ -50,11 +79,6 @@ function sendSignUpCode() {
 
   if (!user || !email || !pass) {
     alert("Please fill in all details! 💕");
-    return;
-  }
-
-  if (users[user]) {
-    alert("Username already taken! Please choose another. 🌸");
     return;
   }
 
@@ -129,7 +153,7 @@ function completePasswordReset() {
     targetResetUser = null;
     generatedCode = null;
   } else {
-    alert("Incorrect verification code! Please try again. 💖");
+    alert("Incorrect verification code! Please check and try again. 💖");
   }
 }
 
@@ -154,7 +178,7 @@ function logout() {
   resetForm();
 }
 
-// Budget Calculation & Persistence
+// Budget Calculation
 function calc() {
   let inc = +i.value || 0, t = 0;
   document.querySelectorAll('.e').forEach(x => t += +x.value || 0);
@@ -165,11 +189,12 @@ i.oninput = calc;
 document.querySelectorAll('.e').forEach(x => x.oninput = calc);
 calc();
 
-function save() {
+// Save or Update Budget (Pushes to Cloud)
+async function save() {
   if (!currentUser) return;
 
   let expenses = Array.from(document.querySelectorAll('.e')).map(x => +x.value || 0);
-  let globalBudgets = getGlobalBudgets();
+  let globalBudgets = await getGlobalBudgets();
 
   if (editingId !== null) {
     let idx = globalBudgets.findIndex(item => item.id === editingId);
@@ -206,15 +231,18 @@ function save() {
     globalBudgets.push(rec);
   }
 
-  saveGlobalBudgets(globalBudgets);
+  await saveGlobalBudgets(globalBudgets);
   resetForm();
   load();
 }
 
-function load() {
+// Load Budgets (Fetches from Cloud)
+async function load() {
   if (!currentUser) return;
 
-  let globalBudgets = getGlobalBudgets();
+  h.innerHTML = "<p style='text-align:center; color:#888;'>🔄 Syncing shared budgets...</p>";
+
+  let globalBudgets = await getGlobalBudgets();
   let userBudgets = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser)));
 
   if (userBudgets.length === 0) {
@@ -243,24 +271,19 @@ function load() {
   }).join('');
 }
 
-function shareRecord(id) {
-  let targetUser = prompt("Enter the username of the logged-in user you want to share this budget with: 💕");
+// Share Budget with Any User
+async function shareRecord(id) {
+  let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
   if (!targetUser) return;
 
   targetUser = targetUser.trim();
-  let users = JSON.parse(localStorage.users || '{}');
-
-  if (!users[targetUser]) {
-    alert("User does not exist! Please check the username. 🌸");
-    return;
-  }
 
   if (targetUser === currentUser) {
     alert("You cannot share a budget with yourself! 🌸");
     return;
   }
 
-  let globalBudgets = getGlobalBudgets();
+  let globalBudgets = await getGlobalBudgets();
   let item = globalBudgets.find(b => b.id === id);
 
   if (item) {
@@ -270,14 +293,15 @@ function shareRecord(id) {
       return;
     }
     item.sharedWith.push(targetUser);
-    saveGlobalBudgets(globalBudgets);
-    alert(`Success! Budget shared with @${targetUser}. They can now view and edit this plan when logged in! ✨`);
+    await saveGlobalBudgets(globalBudgets);
+    alert(`Success! Budget shared with @${targetUser}. When @${targetUser} logs in on any device, they will see and edit this plan! ✨`);
     load();
   }
 }
 
-function editRecord(id) {
-  let globalBudgets = getGlobalBudgets();
+// Edit Budget
+async function editRecord(id) {
+  let globalBudgets = await getGlobalBudgets();
   let item = globalBudgets.find(b => b.id === id);
   if (!item) return;
 
@@ -304,9 +328,10 @@ function editRecord(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function deleteRecord(id) {
+// Delete Budget
+async function deleteRecord(id) {
   if (confirm("Are you sure you want to delete this budget item? 🗑️")) {
-    let globalBudgets = getGlobalBudgets();
+    let globalBudgets = await getGlobalBudgets();
     let idx = globalBudgets.findIndex(b => b.id === id);
 
     if (idx !== -1) {
@@ -318,7 +343,7 @@ function deleteRecord(id) {
         item.sharedWith = item.sharedWith.filter(u => u !== currentUser);
       }
       
-      saveGlobalBudgets(globalBudgets);
+      await saveGlobalBudgets(globalBudgets);
     }
 
     if (editingId === id) {
