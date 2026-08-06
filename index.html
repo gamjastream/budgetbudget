@@ -783,5 +783,26 @@
       calc();
     }
   </script>
-</body>
-</html>
+  <!-- Firebase Cloud Database Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQULG0zRu_i1vRW9DwzrFJwskQJ51W6m0",
+      authDomain: "budget-app-c78cd.firebaseapp.com",
+      databaseURL: "https://budget-app-c78cd-default-rtdb.firebaseio.com",
+      projectId: "budget-app-c78cd",
+      storageBucket: "budget-app-c78cd.firebasestorage.app",
+      messagingSenderId: "594311392581",
+      appId: "1:594311392581:web:d37f6f87539fdb59e4222c",
+      measurementId: "G-3YN08LZFSY"
+    };
+
+    // Initialize Firebase Compat Mode
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      var db = firebase.database();
+    }
+  </script>
