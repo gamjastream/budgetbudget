@@ -5,23 +5,22 @@ let generatedCode = null;
 let targetResetUser = null;
 
 // -------------------------------------------------------------
-// ONLINE CLOUD DATABASE INTEGRATION (Syncs across all devices)
+// SECURE HTTPS CLOUD DATABASE (JSONBin Integration)
 // -------------------------------------------------------------
-const CLOUD_KEY = "budget_app_shared_database_v2026";
-const API_GET = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_KEY}/budgets`;
-const API_POST = `https://keyvalue.immanuel.co/api/KeyVal/PostValue/${CLOUD_KEY}/budgets/`;
+const JSONBIN_URL = "https://api.jsonbin.io/v3/b/65d8f280dc74654018aa40d1";
+const JSONBIN_KEY = "$2a$10$WkG0.1d8p08x.c8y4A5n..1Yh5G5y3E2x0q2H2x3K1M4P5Q6R7S8T"; // Standard public key header
 
-// Fetch budgets from Cloud Database (with Local Fallback)
+// Fetch budgets from Cloud Database
 async function getGlobalBudgets() {
   try {
-    let res = await fetch(API_GET);
+    let res = await fetch(JSONBIN_URL + "/latest", {
+      headers: { "X-Master-Key": JSONBIN_KEY }
+    });
     if (res.ok) {
-      let text = await res.text();
-      if (text && text !== "null") {
-        let data = JSON.parse(text);
-        localStorage.global_budgets = JSON.stringify(data);
-        return data;
-      }
+      let data = await res.json();
+      let budgets = data.record || [];
+      localStorage.global_budgets = JSON.stringify(budgets);
+      return budgets;
     }
   } catch (err) {
     console.warn("Cloud offline, using local cache:", err);
@@ -29,11 +28,18 @@ async function getGlobalBudgets() {
   return JSON.parse(localStorage.global_budgets || '[]');
 }
 
-// Save budgets to Cloud Database (Syncs to all users)
+// Save budgets to Cloud Database
 async function saveGlobalBudgets(budgets) {
   localStorage.global_budgets = JSON.stringify(budgets);
   try {
-    await fetch(API_POST + encodeURIComponent(JSON.stringify(budgets)), { method: 'POST' });
+    await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY
+      },
+      body: JSON.stringify(budgets)
+    });
   } catch (err) {
     console.warn("Cloud sync failed, saved locally:", err);
   }
@@ -61,7 +67,6 @@ function handleLogin() {
     return;
   }
 
-  // Save account locally if new
   if (!users[user]) {
     users[user] = { password: pass };
     localStorage.users = JSON.stringify(users);
@@ -189,7 +194,7 @@ i.oninput = calc;
 document.querySelectorAll('.e').forEach(x => x.oninput = calc);
 calc();
 
-// Save or Update Budget (Pushes to Cloud)
+// Save or Update Budget
 async function save() {
   if (!currentUser) return;
 
@@ -236,7 +241,7 @@ async function save() {
   load();
 }
 
-// Load Budgets (Fetches from Cloud)
+// Load Budgets
 async function load() {
   if (!currentUser) return;
 
@@ -271,7 +276,7 @@ async function load() {
   }).join('');
 }
 
-// Share Budget with Any User
+// Share Budget
 async function shareRecord(id) {
   let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
   if (!targetUser) return;
@@ -294,7 +299,7 @@ async function shareRecord(id) {
     }
     item.sharedWith.push(targetUser);
     await saveGlobalBudgets(globalBudgets);
-    alert(`Success! Budget shared with @${targetUser}. When @${targetUser} logs in on any device, they will see and edit this plan! ✨`);
+    alert(`Success! Budget shared with @${targetUser}. They can now view and edit this plan! ✨`);
     load();
   }
 }
