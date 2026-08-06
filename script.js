@@ -18,7 +18,6 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-// Safely initialize Firebase without crashing if keys are not configured yet
 try {
   if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
     if (!firebase.apps.length) {
@@ -30,10 +29,8 @@ try {
   console.warn("Running in local storage fallback mode.");
 }
 
-// Global Budget Array State
 let globalBudgets = [];
 
-// Initialize Realtime Listener or Local Sync
 if (db) {
   db.ref('budgets').on('value', (snapshot) => {
     const data = snapshot.val();
@@ -49,7 +46,6 @@ if (db) {
   }
 }
 
-// Helper: View Switcher
 function showView(viewId) {
   const views = ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'];
   views.forEach(id => {
@@ -64,9 +60,6 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// -------------------------------------------------------------
-// 1. AUTHENTICATION HANDLERS
-// -------------------------------------------------------------
 function handleLogin() {
   let userEl = document.getElementById('loginUsername');
   let passEl = document.getElementById('loginPassword');
@@ -120,9 +113,6 @@ function logout() {
   resetForm();
 }
 
-// -------------------------------------------------------------
-// 2. REGISTRATION & FORGOT PASSWORD
-// -------------------------------------------------------------
 function sendSignUpCode() {
   let user = document.getElementById('signUpUsername').value.trim();
   let email = document.getElementById('signUpEmail').value.trim();
@@ -207,9 +197,6 @@ function completePasswordReset() {
   }
 }
 
-// -------------------------------------------------------------
-// 3. CALCULATION ENGINE
-// -------------------------------------------------------------
 function calc() {
   let iEl = document.getElementById('i');
   let bEl = document.getElementById('b');
@@ -228,9 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (currentUser) loginUser(currentUser);
 });
 
-// -------------------------------------------------------------
-// 4. SAVE BUDGET
-// -------------------------------------------------------------
 function save() {
   if (!currentUser) {
     alert("Please log in first! 💕");
@@ -303,7 +287,7 @@ function saveLocally(recordData) {
 }
 
 // -------------------------------------------------------------
-// 5. LOAD BUDGET HISTORY (WITH SHARE, EDIT & DELETE BUTTONS)
+// LOAD FUNCTION WITH explicit SHARE, EDIT, AND DELETE BUTTONS
 // -------------------------------------------------------------
 function load() {
   if (!currentUser) return;
@@ -343,9 +327,6 @@ function load() {
   }).join('');
 }
 
-// -------------------------------------------------------------
-// 6. SHARE, EDIT & DELETE FUNCTIONS
-// -------------------------------------------------------------
 function shareRecord(id) {
   let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
   if (!targetUser) return;
