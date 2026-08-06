@@ -4,62 +4,40 @@ let pendingSignUpData = null;
 let generatedCode = null;
 let targetResetUser = null;
 
-// -------------------------------------------------------------
-// SECURE HTTPS CLOUD DATABASE (JSONBin Integration)
-// -------------------------------------------------------------
-const JSONBIN_URL = "https://api.jsonbin.io/v3/b/65d8f280dc74654018aa40d1";
-const JSONBIN_KEY = "$2a$10$WkG0.1d8p08x.c8y4A5n..1Yh5G5y3E2x0q2H2x3K1M4P5Q6R7S8T"; // Standard public key header
-
-// Fetch budgets from Cloud Database
-async function getGlobalBudgets() {
-  try {
-    let res = await fetch(JSONBIN_URL + "/latest", {
-      headers: { "X-Master-Key": JSONBIN_KEY }
-    });
-    if (res.ok) {
-      let data = await res.json();
-      let budgets = data.record || [];
-      localStorage.global_budgets = JSON.stringify(budgets);
-      return budgets;
-    }
-  } catch (err) {
-    console.warn("Cloud offline, using local cache:", err);
-  }
-  return JSON.parse(localStorage.global_budgets || '[]');
-}
-
-// Save budgets to Cloud Database
-async function saveGlobalBudgets(budgets) {
-  localStorage.global_budgets = JSON.stringify(budgets);
-  try {
-    await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_KEY
-      },
-      body: JSON.stringify(budgets)
-    });
-  } catch (err) {
-    console.warn("Cloud sync failed, saved locally:", err);
-  }
-}
-
 // Auth View Switcher
 function showView(viewId) {
   const views = ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'];
-  views.forEach(id => document.getElementById(id).classList.add('hidden'));
-  document.getElementById(viewId).classList.remove('hidden');
+  views.forEach(id => {
+    let el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  let target = document.getElementById(viewId);
+  if (target) target.classList.remove('hidden');
 }
 
 function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Local Storage Helper Functions
+function getBudgets() {
+  try {
+    return JSON.parse(localStorage.getItem('budget_tracker_records') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveBudgets(data) {
+  localStorage.setItem('budget_tracker_records', JSON.stringify(data));
+}
+
 // 1. Login Handler
 function handleLogin() {
-  let user = document.getElementById('loginUsername').value.trim();
-  let pass = document.getElementById('loginPassword').value.trim();
+  let userEl = document.getElementById('loginUsername');
+  let passEl = document.getElementById('loginPassword');
+  let user = userEl ? userEl.value.trim() : '';
+  let pass = passEl ? passEl.value.trim() : '';
   let users = JSON.parse(localStorage.users || '{}');
 
   if (!user || !pass) {
@@ -80,7 +58,6 @@ function sendSignUpCode() {
   let user = document.getElementById('signUpUsername').value.trim();
   let email = document.getElementById('signUpEmail').value.trim();
   let pass = document.getElementById('signUpPassword').value.trim();
-  let users = JSON.parse(localStorage.users || '{}');
 
   if (!user || !email || !pass) {
     alert("Please fill in all details! 💕");
@@ -166,9 +143,14 @@ function completePasswordReset() {
 function loginUser(user) {
   currentUser = user;
   localStorage.currentUser = user;
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('appScreen').classList.remove('hidden');
-  document.getElementById('userDisplay').textContent = user;
+  
+  let auth = document.getElementById('authScreen');
+  let app = document.getElementById('appScreen');
+  let uDisp = document.getElementById('userDisplay');
+
+  if (auth) auth.classList.add('hidden');
+  if (app) app.classList.remove('hidden');
+  if (uDisp) uDisp.textContent = user;
   
   document.querySelectorAll('#authScreen input').forEach(input => input.value = '');
   load();
@@ -177,107 +159,139 @@ function loginUser(user) {
 function logout() {
   currentUser = null;
   localStorage.removeItem('currentUser');
-  document.getElementById('appScreen').classList.add('hidden');
-  document.getElementById('authScreen').classList.remove('hidden');
+  let auth = document.getElementById('authScreen');
+  let app = document.getElementById('appScreen');
+
+  if (app) app.classList.add('hidden');
+  if (auth) auth.classList.remove('hidden');
   showView('loginForm');
   resetForm();
 }
 
 // Budget Calculation
 function calc() {
-  let inc = +i.value || 0, t = 0;
-  document.querySelectorAll('.e').forEach(x => t += +x.value || 0);
-  b.textContent = (inc - t).toFixed(2);
+  let iEl = document.getElementById('i');
+  let bEl = document.getElementById('b');
+  let inc = iEl ? (+iEl.value || 0) : 0;
+  let t = 0;
+  
+  document.querySelectorAll('.e').forEach(x => t += (+x.value || 0));
+  if (bEl) bEl.textContent = (inc - t).toFixed(2);
 }
 
-i.oninput = calc;
-document.querySelectorAll('.e').forEach(x => x.oninput = calc);
-calc();
+// Attach Event Listeners Safely
+document.addEventListener('DOMContentLoaded', () => {
+  let iEl = document.getElementById('i');
+  if (iEl) iEl.oninput = calc;
+  document.querySelectorAll('.e').forEach(x => x.oninput = calc);
+  calc();
+  if (currentUser) loginUser(currentUser);
+});
 
-// Save or Update Budget
-async function save() {
-  if (!currentUser) return;
+// SAVE BUDGET FUNCTION
+function save() {
+  if (!currentUser) {
+    alert("Please log in first! 💕");
+    return;
+  }
+
+  let dEl = document.getElementById('d');
+  let pEl = document.getElementById('p');
+  let iEl = document.getElementById('i');
+  let bEl = document.getElementById('b');
+  let saveBtn = document.getElementById('saveBtn');
+
+  let dateVal = dEl ? dEl.value : '';
+  let periodVal = pEl ? pEl.value : 'Weekly';
+  let incomeVal = iEl ? (+iEl.value || 0) : 0;
+  let balVal = bEl ? (+bEl.textContent || 0) : 0;
 
   let expenses = Array.from(document.querySelectorAll('.e')).map(x => +x.value || 0);
-  let globalBudgets = await getGlobalBudgets();
+  let globalBudgets = getBudgets();
+
+  let subTitle = document.getElementById('sub_other_title');
+  let transTitle = document.getElementById('trans_other_title');
+  let billsTitle = document.getElementById('bills_other_title');
 
   if (editingId !== null) {
     let idx = globalBudgets.findIndex(item => item.id === editingId);
     if (idx !== -1) {
-      globalBudgets[idx].date = d.value;
-      globalBudgets[idx].period = p.value;
-      globalBudgets[idx].income = +i.value;
-      globalBudgets[idx].balance = +b.textContent;
+      globalBudgets[idx].date = dateVal;
+      globalBudgets[idx].period = periodVal;
+      globalBudgets[idx].income = incomeVal;
+      globalBudgets[idx].balance = balVal;
       globalBudgets[idx].expenses = expenses;
       globalBudgets[idx].customs = {
-        sub: document.getElementById('sub_other_title').value,
-        trans: document.getElementById('trans_other_title').value,
-        bills: document.getElementById('bills_other_title').value
+        sub: subTitle ? subTitle.value : '',
+        trans: transTitle ? transTitle.value : '',
+        bills: billsTitle ? billsTitle.value : ''
       };
     }
     editingId = null;
-    document.getElementById('saveBtn').textContent = '💾 Save Budget';
+    if (saveBtn) saveBtn.textContent = '💾 Save Budget';
   } else {
     let rec = {
       id: Date.now().toString(),
       owner: currentUser,
       sharedWith: [],
-      date: d.value,
-      period: p.value,
-      income: +i.value,
-      balance: +b.textContent,
+      date: dateVal,
+      period: periodVal,
+      income: incomeVal,
+      balance: balVal,
       expenses: expenses,
       customs: {
-        sub: document.getElementById('sub_other_title').value,
-        trans: document.getElementById('trans_other_title').value,
-        bills: document.getElementById('bills_other_title').value
+        sub: subTitle ? subTitle.value : '',
+        trans: transTitle ? transTitle.value : '',
+        bills: billsTitle ? billsTitle.value : ''
       }
     };
     globalBudgets.push(rec);
   }
 
-  await saveGlobalBudgets(globalBudgets);
+  saveBudgets(globalBudgets);
   resetForm();
   load();
+  alert("Budget saved successfully! 🎉");
 }
 
-// Load Budgets
-async function load() {
+// LOAD BUDGETS FUNCTION
+function load() {
   if (!currentUser) return;
 
-  h.innerHTML = "<p style='text-align:center; color:#888;'>🔄 Syncing shared budgets...</p>";
+  let hEl = document.getElementById('h');
+  if (!hEl) return;
 
-  let globalBudgets = await getGlobalBudgets();
+  let globalBudgets = getBudgets();
   let userBudgets = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser)));
 
   if (userBudgets.length === 0) {
-    h.innerHTML = "<p style='text-align:center; color:#888;'>No saved or shared budgets yet!</p>";
+    hEl.innerHTML = "<p style='text-align:center; color:#888;'>No saved or shared budgets yet!</p>";
     return;
   }
   
-  h.innerHTML = userBudgets.map((r) => {
+  hEl.innerHTML = userBudgets.map((r) => {
     let isOwner = r.owner === currentUser;
     let sharedBadge = !isOwner ? `<span class="badge-shared">Shared by @${r.owner}</span>` : 
       (r.sharedWith && r.sharedWith.length > 0 ? `<span class="badge-shared">Shared with: ${r.sharedWith.join(', ')}</span>` : '');
 
     return `
-      <div class="history-item">
+      <div class="history-item" style="background:#fff0f5; padding:12px; margin-top:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
         <div>
           🌸 <strong>${r.date || 'No Date'}</strong> | ${r.period} | 💵 Income: $${r.income} | 💖 Remaining: $${r.balance}
           ${sharedBadge}
         </div>
-        <div class="history-actions">
-          <button class="btn-share" onclick="shareRecord('${r.id}')">🤝 Share</button>
-          <button class="btn-edit" onclick="editRecord('${r.id}')">✏️ Edit</button>
-          <button class="btn-delete" onclick="deleteRecord('${r.id}')">🗑️ Delete</button>
+        <div class="history-actions" style="display:flex; gap:5px;">
+          <button onclick="shareRecord('${r.id}')" style="background:#ff77a9; color:white; border:none; padding:5px 10px; border-radius:6px; cursor:pointer;">🤝 Share</button>
+          <button onclick="editRecord('${r.id}')" style="background:#4a90e2; color:white; border:none; padding:5px 10px; border-radius:6px; cursor:pointer;">✏️ Edit</button>
+          <button onclick="deleteRecord('${r.id}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:6px; cursor:pointer;">🗑️ Delete</button>
         </div>
       </div>
     `;
   }).join('');
 }
 
-// Share Budget
-async function shareRecord(id) {
+// SHARE RECORD
+function shareRecord(id) {
   let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
   if (!targetUser) return;
 
@@ -288,7 +302,7 @@ async function shareRecord(id) {
     return;
   }
 
-  let globalBudgets = await getGlobalBudgets();
+  let globalBudgets = getBudgets();
   let item = globalBudgets.find(b => b.id === id);
 
   if (item) {
@@ -298,21 +312,26 @@ async function shareRecord(id) {
       return;
     }
     item.sharedWith.push(targetUser);
-    await saveGlobalBudgets(globalBudgets);
-    alert(`Success! Budget shared with @${targetUser}. They can now view and edit this plan! ✨`);
+    saveBudgets(globalBudgets);
+    alert(`Success! Budget shared with @${targetUser}. ✨`);
     load();
   }
 }
 
-// Edit Budget
-async function editRecord(id) {
-  let globalBudgets = await getGlobalBudgets();
+// EDIT RECORD
+function editRecord(id) {
+  let globalBudgets = getBudgets();
   let item = globalBudgets.find(b => b.id === id);
   if (!item) return;
 
-  d.value = item.date || '';
-  p.value = item.period || 'Weekly';
-  i.value = item.income || 0;
+  let dEl = document.getElementById('d');
+  let pEl = document.getElementById('p');
+  let iEl = document.getElementById('i');
+  let saveBtn = document.getElementById('saveBtn');
+
+  if (dEl) dEl.value = item.date || '';
+  if (pEl) pEl.value = item.period || 'Weekly';
+  if (iEl) iEl.value = item.income || 0;
 
   let expInputs = document.querySelectorAll('.e');
   if (item.expenses) {
@@ -321,53 +340,59 @@ async function editRecord(id) {
     });
   }
 
+  let subTitle = document.getElementById('sub_other_title');
+  let transTitle = document.getElementById('trans_other_title');
+  let billsTitle = document.getElementById('bills_other_title');
+
   if (item.customs) {
-    document.getElementById('sub_other_title').value = item.customs.sub || '';
-    document.getElementById('trans_other_title').value = item.customs.trans || '';
-    document.getElementById('bills_other_title').value = item.customs.bills || '';
+    if (subTitle) subTitle.value = item.customs.sub || '';
+    if (transTitle) transTitle.value = item.customs.trans || '';
+    if (billsTitle) billsTitle.value = item.customs.bills || '';
   }
 
   calc();
   editingId = id;
-  document.getElementById('saveBtn').textContent = '🔄 Update Shared Budget';
+  if (saveBtn) saveBtn.textContent = '🔄 Update Shared Budget';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Delete Budget
-async function deleteRecord(id) {
+// DELETE RECORD
+function deleteRecord(id) {
   if (confirm("Are you sure you want to delete this budget item? 🗑️")) {
-    let globalBudgets = await getGlobalBudgets();
+    let globalBudgets = getBudgets();
     let idx = globalBudgets.findIndex(b => b.id === id);
 
     if (idx !== -1) {
       let item = globalBudgets[idx];
-      
       if (item.owner === currentUser) {
         globalBudgets.splice(idx, 1);
       } else {
         item.sharedWith = item.sharedWith.filter(u => u !== currentUser);
       }
-      
-      await saveGlobalBudgets(globalBudgets);
+      saveBudgets(globalBudgets);
     }
 
+    let saveBtn = document.getElementById('saveBtn');
     if (editingId === id) {
       resetForm();
       editingId = null;
-      document.getElementById('saveBtn').textContent = '💾 Save Budget';
+      if (saveBtn) saveBtn.textContent = '💾 Save Budget';
     }
     load();
   }
 }
 
 function resetForm() {
-  d.value = '';
-  i.value = 0;
+  let dEl = document.getElementById('d');
+  let iEl = document.getElementById('i');
+  if (dEl) dEl.value = '';
+  if (iEl) iEl.value = 0;
   document.querySelectorAll('.e').forEach(x => x.value = 0);
   document.querySelectorAll('.custom-input').forEach(x => x.value = '');
   calc();
 }
 
+// Initial Run Fallback
 if (currentUser) {
-  loginUser(currentUser);
+  setTimeout(() => loginUser(currentUser), 100);
 }
