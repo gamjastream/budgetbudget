@@ -23,7 +23,7 @@
     .sub-row td { font-size: 13px; color: #555; }
     .sum { font-weight: bold; font-size: 18px; color: #ff69b4; text-align: center; margin: 15px 0; }
     
-    /* History & 3-Button Layout */
+    /* History & 3-Button Row Layout */
     .history-item { 
       background: #fff0f5; 
       padding: 16px; 
@@ -35,28 +35,33 @@
       border: 1px solid #ffe4e1;
     }
     .history-info { font-size: 13px; color: #333; line-height: 1.5; }
-    .history-actions { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
-    .history-actions button { 
-      flex: 1; 
-      margin: 0; 
-      padding: 10px 4px; 
-      font-size: 13px; 
-      border-radius: 8px; 
-      border: none; 
-      color: white; 
-      cursor: pointer; 
-      font-weight: bold; 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
+    .history-actions { 
+      display: flex !important; 
+      gap: 8px !important; 
+      width: 100% !important; 
+      margin-top: 4px; 
     }
-    .btn-share { background: #ff69b4; }
-    .btn-share:hover { background: #ff4797; }
-    .btn-edit { background: #4a90e2; }
-    .btn-edit:hover { background: #357abd; }
-    .btn-delete { background: #e74c3c; }
-    .btn-delete:hover { background: #c0392b; }
+    .history-actions button { 
+      flex: 1 !important; 
+      margin: 0 !important; 
+      padding: 10px 4px !important; 
+      font-size: 13px !important; 
+      border-radius: 8px !important; 
+      border: none !important; 
+      color: white !important; 
+      cursor: pointer !important; 
+      font-weight: bold !important; 
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 4px !important;
+    }
+    .btn-share { background: #ff69b4 !important; }
+    .btn-share:hover { background: #ff4797 !important; }
+    .btn-edit { background: #4a90e2 !important; }
+    .btn-edit:hover { background: #357abd !important; }
+    .btn-delete { background: #e74c3c !important; }
+    .btn-delete:hover { background: #c0392b !important; }
     .badge-shared { font-size: 12px; color: #777; margin-top: 4px; }
     .custom-input { width: 100% !important; margin: 0 !important; }
   </style>
@@ -211,7 +216,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-  <!-- Connect Your JavaScript Logic File -->
-  <script src="script.js"></script>
+  <!-- Connect Your JavaScript Logic File with Cache Busting Parameter -->
+  <script src="script.js?v=2.0"></script>
 </body>
 </html>
