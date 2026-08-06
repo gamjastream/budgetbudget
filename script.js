@@ -303,7 +303,7 @@ function saveLocally(recordData) {
 }
 
 // -------------------------------------------------------------
-// 5. LOAD BUDGET HISTORY WITH RESTORED ACTION BUTTONS
+// 5. LOAD BUDGET HISTORY (WITH SHARE, EDIT & DELETE BUTTONS)
 // -------------------------------------------------------------
 function load() {
   if (!currentUser) return;
@@ -322,8 +322,9 @@ function load() {
 
   hEl.innerHTML = userBudgets.map((r) => {
     let isOwner = r.owner === currentUser;
-    let sharedBadge = !isOwner ? `<span class="badge-shared">Shared by @${r.owner}</span>` : 
-      (r.sharedWith && r.sharedWith.length > 0 ? `<span class="badge-shared">Shared with: ${r.sharedWith.join(', ')}</span>` : '');
+    let sharedBadge = !isOwner 
+      ? `<div class="badge-shared">Shared by @${r.owner}</div>` 
+      : (r.sharedWith && r.sharedWith.length > 0 ? `<div class="badge-shared">Shared with: ${r.sharedWith.join(', ')}</div>` : '');
 
     return `
       <div class="history-item">
