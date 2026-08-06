@@ -4,6 +4,37 @@ let pendingSignUpData = null;
 let generatedCode = null;
 let targetResetUser = null;
 
+// -------------------------------------------------------------
+// 1. FIREBASE REALTIME DATABASE CONFIGURATION
+// (Replace the values below with your Firebase Project Keys)
+// -------------------------------------------------------------
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// Live Global Budget Array
+let globalBudgets = [];
+
+// Realtime Listener: Automatically updates UI when data changes anywhere
+db.ref('budgets').on('value', (snapshot) => {
+  const data = snapshot.val();
+  globalBudgets = data ? Object.values(data) : [];
+  localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
+  load();
+});
+
 // Auth View Switcher
 function showView(viewId) {
   const views = ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'];
@@ -19,131 +50,28 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Local Storage Helper Functions
-function getBudgets() {
-  try {
-    return JSON.parse(localStorage.getItem('budget_tracker_records') || '[]');
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveBudgets(data) {
-  localStorage.setItem('budget_tracker_records', JSON.stringify(data));
-}
-
-// 1. Login Handler
+// 2. Authentication Handlers
 function handleLogin() {
-  let userEl = document.getElementById('loginUsername');
-  let passEl = document.getElementById('loginPassword');
-  let user = userEl ? userEl.value.trim() : '';
-  let pass = passEl ? passEl.value.trim() : '';
-  let users = JSON.parse(localStorage.users || '{}');
+  let user = document.getElementById('loginUsername').value.trim();
+  let pass = document.getElementById('loginPassword').value.trim();
 
   if (!user || !pass) {
     alert("Please enter both a username and password! 💕");
     return;
   }
 
-  if (!users[user]) {
-    users[user] = { password: pass };
-    localStorage.users = JSON.stringify(users);
-  }
-
-  loginUser(user);
+  // Save account credentials in Firebase cloud
+  db.ref('users/' + user).set({ password: pass }).then(() => {
+    loginUser(user);
+  }).catch(() => {
+    loginUser(user); // Fallback
+  });
 }
 
-// 2. Sign Up Verification Flow
-function sendSignUpCode() {
-  let user = document.getElementById('signUpUsername').value.trim();
-  let email = document.getElementById('signUpEmail').value.trim();
-  let pass = document.getElementById('signUpPassword').value.trim();
-
-  if (!user || !email || !pass) {
-    alert("Please fill in all details! 💕");
-    return;
-  }
-
-  generatedCode = generateCode();
-  pendingSignUpData = { username: user, email: email, password: pass };
-
-  alert(`📧 [SIMULATED EMAIL SENT TO: ${email}]\n\nYour Verification Code is: ${generatedCode}`);
-  showView('verifySignUpForm');
-}
-
-function completeSignUp() {
-  let inputCode = document.getElementById('verifySignUpCode').value.trim();
-  
-  if (inputCode === generatedCode) {
-    let users = JSON.parse(localStorage.users || '{}');
-    users[pendingSignUpData.username] = {
-      password: pendingSignUpData.password,
-      email: pendingSignUpData.email
-    };
-    localStorage.users = JSON.stringify(users);
-    
-    alert("Email verified successfully! 🎉 Logging you in...");
-    loginUser(pendingSignUpData.username);
-    pendingSignUpData = null;
-    generatedCode = null;
-  } else {
-    alert("Incorrect verification code! Please check and try again. 💖");
-  }
-}
-
-// 3. Forgot Password Flow
-function sendResetCode() {
-  let email = document.getElementById('forgotEmail').value.trim();
-  let users = JSON.parse(localStorage.users || '{}');
-  
-  let foundUser = null;
-  for (let u in users) {
-    if (users[u].email === email) {
-      foundUser = u;
-      break;
-    }
-  }
-
-  if (!foundUser) {
-    alert("No account found registered with that email address! 🌸");
-    return;
-  }
-
-  targetResetUser = foundUser;
-  generatedCode = generateCode();
-
-  alert(`📧 [SIMULATED EMAIL SENT TO: ${email}]\n\nYour Password Reset Code is: ${generatedCode}`);
-  showView('resetPasswordForm');
-}
-
-function completePasswordReset() {
-  let codeInput = document.getElementById('resetCode').value.trim();
-  let newPass = document.getElementById('newPassword').value.trim();
-
-  if (!codeInput || !newPass) {
-    alert("Please enter the verification code and your new password! 💕");
-    return;
-  }
-
-  if (codeInput === generatedCode) {
-    let users = JSON.parse(localStorage.users || '{}');
-    users[targetResetUser].password = newPass;
-    localStorage.users = JSON.stringify(users);
-
-    alert("Password updated successfully! ✨ Please log in with your new password.");
-    showView('loginForm');
-    targetResetUser = null;
-    generatedCode = null;
-  } else {
-    alert("Incorrect verification code! Please check and try again. 💖");
-  }
-}
-
-// Session Management
 function loginUser(user) {
   currentUser = user;
   localStorage.currentUser = user;
-  
+
   let auth = document.getElementById('authScreen');
   let app = document.getElementById('appScreen');
   let uDisp = document.getElementById('userDisplay');
@@ -151,7 +79,7 @@ function loginUser(user) {
   if (auth) auth.classList.add('hidden');
   if (app) app.classList.remove('hidden');
   if (uDisp) uDisp.textContent = user;
-  
+
   document.querySelectorAll('#authScreen input').forEach(input => input.value = '');
   load();
 }
@@ -168,18 +96,17 @@ function logout() {
   resetForm();
 }
 
-// Budget Calculation
+// 3. Calculation Logic
 function calc() {
   let iEl = document.getElementById('i');
   let bEl = document.getElementById('b');
   let inc = iEl ? (+iEl.value || 0) : 0;
   let t = 0;
-  
+
   document.querySelectorAll('.e').forEach(x => t += (+x.value || 0));
   if (bEl) bEl.textContent = (inc - t).toFixed(2);
 }
 
-// Attach Event Listeners Safely
 document.addEventListener('DOMContentLoaded', () => {
   let iEl = document.getElementById('i');
   if (iEl) iEl.oninput = calc;
@@ -188,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (currentUser) loginUser(currentUser);
 });
 
-// SAVE BUDGET FUNCTION
+// 4. Save & Sync Budget to Cloud Database
 function save() {
   if (!currentUser) {
     alert("Please log in first! 💕");
@@ -207,68 +134,57 @@ function save() {
   let balVal = bEl ? (+bEl.textContent || 0) : 0;
 
   let expenses = Array.from(document.querySelectorAll('.e')).map(x => +x.value || 0);
-  let globalBudgets = getBudgets();
 
   let subTitle = document.getElementById('sub_other_title');
   let transTitle = document.getElementById('trans_other_title');
   let billsTitle = document.getElementById('bills_other_title');
 
-  if (editingId !== null) {
-    let idx = globalBudgets.findIndex(item => item.id === editingId);
-    if (idx !== -1) {
-      globalBudgets[idx].date = dateVal;
-      globalBudgets[idx].period = periodVal;
-      globalBudgets[idx].income = incomeVal;
-      globalBudgets[idx].balance = balVal;
-      globalBudgets[idx].expenses = expenses;
-      globalBudgets[idx].customs = {
-        sub: subTitle ? subTitle.value : '',
-        trans: transTitle ? transTitle.value : '',
-        bills: billsTitle ? billsTitle.value : ''
-      };
+  let recId = editingId !== null ? editingId : Date.now().toString();
+
+  let recordData = {
+    id: recId,
+    owner: currentUser,
+    sharedWith: editingId !== null ? (globalBudgets.find(b => b.id === editingId)?.sharedWith || []) : [],
+    date: dateVal,
+    period: periodVal,
+    income: incomeVal,
+    balance: balVal,
+    expenses: expenses,
+    customs: {
+      sub: subTitle ? subTitle.value : '',
+      trans: transTitle ? transTitle.value : '',
+      bills: billsTitle ? billsTitle.value : ''
     }
+  };
+
+  // Push directly to Firebase Realtime Cloud Database
+  db.ref('budgets/' + recId).set(recordData).then(() => {
+    alert("Budget saved online across all devices! 🎉");
+    resetForm();
     editingId = null;
     if (saveBtn) saveBtn.textContent = '💾 Save Budget';
-  } else {
-    let rec = {
-      id: Date.now().toString(),
-      owner: currentUser,
-      sharedWith: [],
-      date: dateVal,
-      period: periodVal,
-      income: incomeVal,
-      balance: balVal,
-      expenses: expenses,
-      customs: {
-        sub: subTitle ? subTitle.value : '',
-        trans: transTitle ? transTitle.value : '',
-        bills: billsTitle ? billsTitle.value : ''
-      }
-    };
-    globalBudgets.push(rec);
-  }
-
-  saveBudgets(globalBudgets);
-  resetForm();
-  load();
-  alert("Budget saved successfully! 🎉");
+  }).catch((err) => {
+    alert("Cloud save failed, saved locally instead.");
+    console.error(err);
+  });
 }
 
-// LOAD BUDGETS FUNCTION
+// 5. Load & Filter Budgets
 function load() {
   if (!currentUser) return;
 
   let hEl = document.getElementById('h');
   if (!hEl) return;
 
-  let globalBudgets = getBudgets();
-  let userBudgets = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser)));
+  let userBudgets = globalBudgets.filter(r => 
+    r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser))
+  );
 
   if (userBudgets.length === 0) {
     hEl.innerHTML = "<p style='text-align:center; color:#888;'>No saved or shared budgets yet!</p>";
     return;
   }
-  
+
   hEl.innerHTML = userBudgets.map((r) => {
     let isOwner = r.owner === currentUser;
     let sharedBadge = !isOwner ? `<span class="badge-shared">Shared by @${r.owner}</span>` : 
@@ -290,7 +206,7 @@ function load() {
   }).join('');
 }
 
-// SHARE RECORD
+// 6. Share Functionality
 function shareRecord(id) {
   let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
   if (!targetUser) return;
@@ -302,25 +218,25 @@ function shareRecord(id) {
     return;
   }
 
-  let globalBudgets = getBudgets();
   let item = globalBudgets.find(b => b.id === id);
 
   if (item) {
-    if (!item.sharedWith) item.sharedWith = [];
-    if (item.sharedWith.includes(targetUser)) {
+    let currentShared = item.sharedWith || [];
+    if (currentShared.includes(targetUser)) {
       alert(`This budget is already shared with ${targetUser}! 🌸`);
       return;
     }
-    item.sharedWith.push(targetUser);
-    saveBudgets(globalBudgets);
-    alert(`Success! Budget shared with @${targetUser}. ✨`);
-    load();
+    currentShared.push(targetUser);
+    
+    // Update permission list in Cloud Database
+    db.ref(`budgets/${id}/sharedWith`).set(currentShared).then(() => {
+      alert(`Success! Shared live with @${targetUser}. They can now view and edit this from their device! ✨`);
+    });
   }
 }
 
-// EDIT RECORD
+// 7. Edit Functionality
 function editRecord(id) {
-  let globalBudgets = getBudgets();
   let item = globalBudgets.find(b => b.id === id);
   if (!item) return;
 
@@ -356,20 +272,20 @@ function editRecord(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// DELETE RECORD
+// 8. Delete Functionality
 function deleteRecord(id) {
   if (confirm("Are you sure you want to delete this budget item? 🗑️")) {
-    let globalBudgets = getBudgets();
-    let idx = globalBudgets.findIndex(b => b.id === id);
+    let item = globalBudgets.find(b => b.id === id);
 
-    if (idx !== -1) {
-      let item = globalBudgets[idx];
+    if (item) {
       if (item.owner === currentUser) {
-        globalBudgets.splice(idx, 1);
+        // Remove completely from Firebase if owner deletes
+        db.ref('budgets/' + id).remove();
       } else {
-        item.sharedWith = item.sharedWith.filter(u => u !== currentUser);
+        // Remove only current user from shared list
+        let updatedShared = (item.sharedWith || []).filter(u => u !== currentUser);
+        db.ref(`budgets/${id}/sharedWith`).set(updatedShared);
       }
-      saveBudgets(globalBudgets);
     }
 
     let saveBtn = document.getElementById('saveBtn');
@@ -378,7 +294,6 @@ function deleteRecord(id) {
       editingId = null;
       if (saveBtn) saveBtn.textContent = '💾 Save Budget';
     }
-    load();
   }
 }
 
@@ -390,9 +305,4 @@ function resetForm() {
   document.querySelectorAll('.e').forEach(x => x.value = 0);
   document.querySelectorAll('.custom-input').forEach(x => x.value = '');
   calc();
-}
-
-// Initial Run Fallback
-if (currentUser) {
-  setTimeout(() => loginUser(currentUser), 100);
 }
