@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cute Multi-Device Budget Tracker</title>
+  <title>Cute Budget Tracker</title>
   
-  <!-- Google Font: Fredoka (Soft, Cute, Playful & Animated Feel) -->
+  <!-- Google Font: Fredoka -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,12 +13,11 @@
   <style>
     * { 
       box-sizing: border-box; 
-      font-family: 'Fredoka', 'Quicksand', 'Segoe UI', sans-serif; 
+      font-family: 'Fredoka', sans-serif; 
     }
     
     body { 
       background-color: #fcf4f8; 
-      /* Subtle, faint background pattern using a high-opacity color blend over a cute cat background */
       background-image: 
         linear-gradient(rgba(252, 244, 248, 0.92), rgba(252, 244, 248, 0.92)), 
         url('https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=1200&q=80');
@@ -32,13 +31,12 @@
     }
 
     .card { 
-      background: rgba(255, 255, 255, 0.96); 
+      background: rgba(255, 255, 255, 0.97); 
       width: 100%; 
-      max-width: 520px; 
-      padding: 28px; 
-      border-radius: 24px; 
-      box-shadow: 0 12px 30px rgba(255, 105, 180, 0.12); 
-      backdrop-filter: blur(5px);
+      max-width: 480px; 
+      padding: 24px; 
+      border-radius: 20px; 
+      box-shadow: 0 8px 25px rgba(255, 105, 180, 0.12); 
     }
 
     .hidden { display: none !important; }
@@ -47,34 +45,38 @@
       text-align: center; 
       color: #ff69b4; 
       margin-top: 0; 
+      margin-bottom: 12px;
       font-weight: 700;
-      letter-spacing: 0.5px;
     }
-    
-    /* Login Cat Image (Kept Pristine) */
+
     .cat-img { 
       display: block; 
       width: 100%; 
-      max-width: 320px; 
-      margin: 15px auto; 
-      border-radius: 16px; 
-      box-shadow: 0 4px 15px rgba(255, 105, 180, 0.15);
+      max-width: 280px; 
+      margin: 12px auto; 
+      border-radius: 14px; 
     }
 
+    /* General Form Elements */
     input, select, button { 
-      width: 100%; 
-      padding: 13px 15px; 
-      margin: 8px 0; 
-      border-radius: 12px; 
-      border: 2px solid #ffd1dc; 
+      border-radius: 10px; 
+      border: 1.5px solid #ffd1dc; 
       outline: none; 
-      font-size: 15px; 
-      transition: all 0.2s ease-in-out;
+      font-size: 14px; 
+      transition: all 0.2s;
     }
 
     input:focus, select:focus { 
       border-color: #ff69b4; 
-      box-shadow: 0 0 8px rgba(255,105,180,0.3); 
+      box-shadow: 0 0 5px rgba(255,105,180,0.3); 
+    }
+
+    /* Inputs & Selects full width when outside rows */
+    #authScreen input, #authScreen button, select, #d, #i {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 4px;
+      margin-bottom: 12px;
     }
 
     .btn-main { 
@@ -83,14 +85,11 @@
       border: none; 
       font-weight: 600; 
       cursor: pointer; 
-      font-size: 16px;
-      box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+      padding: 12px;
+      font-size: 15px;
     }
     
-    .btn-main:hover { 
-      background: #ff4797; 
-      transform: translateY(-1px);
-    }
+    .btn-main:hover { background: #ff4797; }
     
     .btn-sub { 
       background: #f8e8ee; 
@@ -98,87 +97,125 @@
       border: none; 
       cursor: pointer; 
       font-weight: 500;
-    }
-    
-    .btn-sub:hover {
-      background: #f0d8e2;
+      padding: 10px;
     }
 
     .auth-links { 
       display: flex; 
       justify-content: space-between; 
       font-size: 13px; 
-      margin-top: 12px; 
-      font-weight: 500;
+      margin-top: 10px; 
     }
     
-    .auth-links a { 
-      color: #ff69b4; 
-      text-decoration: none; 
-      cursor: pointer; 
-    }
-    
-    .auth-links a:hover {
-      text-decoration: underline;
+    .auth-links a { color: #ff69b4; text-decoration: none; cursor: pointer; }
+
+    /* Clean Layout & Tight Alignment */
+    .form-group {
+      margin-bottom: 10px;
     }
 
-    table { width: 100%; margin-top: 15px; border-collapse: collapse; }
-    td { padding: 8px 4px; font-weight: 500; }
-    .sub-row td { font-size: 14px; color: #555; }
-    
+    label {
+      font-size: 13px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-weight: 700;
+      color: #ff69b4;
+      font-size: 14px;
+      margin: 16px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #ffd1dc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Row Layout: Tight spacing aligned nicely to words */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .row label {
+      flex: 1;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .row input[type="number"] {
+      width: 110px;
+      padding: 6px 10px;
+      text-align: right;
+      margin: 0;
+    }
+
+    .row input[type="text"] {
+      flex: 1;
+      padding: 6px 10px;
+      margin: 0;
+    }
+
+    .btn-add {
+      background: #fff0f5;
+      color: #ff69b4;
+      border: 1px dashed #ff69b4;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 6px;
+    }
+
+    .btn-add:hover {
+      background: #ff69b4;
+      color: white;
+    }
+
     .sum { 
       font-weight: 700; 
-      font-size: 20px; 
+      font-size: 18px; 
       color: #ff69b4; 
       text-align: center; 
-      margin: 18px 0; 
+      margin: 16px 0; 
     }
     
-    /* History & 3-Button Row Layout */
+    /* History List */
     .history-item { 
       background: #fff0f5; 
-      padding: 16px; 
-      margin-top: 12px; 
-      border-radius: 16px; 
-      display: flex; 
-      flex-direction: column;
-      gap: 10px;
+      padding: 14px; 
+      margin-top: 10px; 
+      border-radius: 12px; 
       border: 1px solid #ffe4e1;
     }
 
-    .history-info { font-size: 14px; color: #333; line-height: 1.5; font-weight: 500; }
+    .history-info { font-size: 13px; color: #333; line-height: 1.4; }
     
     .history-actions { 
-      display: flex !important; 
-      gap: 8px !important; 
-      width: 100% !important; 
-      margin-top: 4px; 
+      display: flex; 
+      gap: 6px; 
+      margin-top: 8px; 
     }
 
     .history-actions button { 
-      flex: 1 !important; 
-      margin: 0 !important; 
-      padding: 10px 4px !important; 
-      font-size: 14px !important; 
-      border-radius: 10px !important; 
-      border: none !important; 
-      color: white !important; 
-      cursor: pointer !important; 
-      font-weight: 600 !important; 
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 4px !important;
+      flex: 1; 
+      padding: 6px; 
+      font-size: 12px; 
+      border-radius: 6px; 
+      border: none; 
+      color: white; 
+      cursor: pointer; 
+      font-weight: 600; 
     }
 
-    .btn-share { background: #ff69b4 !important; }
-    .btn-share:hover { background: #ff4797 !important; }
-    .btn-edit { background: #4a90e2 !important; }
-    .btn-edit:hover { background: #357abd !important; }
-    .btn-delete { background: #e74c3c !important; }
-    .btn-delete:hover { background: #c0392b !important; }
-    .badge-shared { font-size: 12px; color: #777; margin-top: 4px; }
-    .custom-input { width: 100% !important; margin: 0 !important; }
+    .btn-share { background: #ff69b4; }
+    .btn-edit { background: #4a90e2; }
+    .btn-delete { background: #e74c3c; }
+    .badge-shared { font-size: 11px; color: #777; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -186,13 +223,12 @@
   <div class="card">
     <!-- AUTHENTICATION SCREEN -->
     <div id="authScreen">
-      <!-- Login View -->
       <div id="loginForm">
         <h1>✨ Welcome! Login ✨</h1>
         <form onsubmit="event.preventDefault(); handleLogin();">
           <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username">
           <img class="cat-img" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" alt="Cute Cat">
-          <p style="text-align:center; font-size:14px; color:#666; font-weight:500;">Meowdy! Ready to save some treats? 🐾</p>
+          <p style="text-align:center; font-size:13px; color:#666; margin: 4px 0;">Meowdy! Ready to save some treats? 🐾</p>
           <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
           <button type="submit" class="btn-main">Login 🔑</button>
         </form>
@@ -202,7 +238,6 @@
         </div>
       </div>
 
-      <!-- Sign Up View -->
       <div id="signupForm" class="hidden">
         <h1>🌸 Create Account 🌸</h1>
         <form onsubmit="event.preventDefault(); sendSignUpCode();">
@@ -214,10 +249,9 @@
         <button type="button" class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
       </div>
 
-      <!-- Verify Code View -->
       <div id="verifySignUpForm" class="hidden">
         <h1>📩 Verify Email 📩</h1>
-        <p style="text-align:center; font-size:14px; color:#666; font-weight:500;">Enter the 6-digit code sent to your email.</p>
+        <p style="text-align:center; font-size:13px; color:#666;">Enter the 6-digit code sent to your email.</p>
         <form onsubmit="event.preventDefault(); completeSignUp();">
           <input type="text" id="verifySignUpCode" placeholder="6-digit code" required>
           <button type="submit" class="btn-main">Verify & Create Account 🎉</button>
@@ -225,7 +259,6 @@
         <button type="button" class="btn-sub" onclick="showView('signupForm')">Back</button>
       </div>
 
-      <!-- Forgot Password View -->
       <div id="forgotForm" class="hidden">
         <h1>🔑 Reset Password 🔑</h1>
         <form onsubmit="event.preventDefault(); sendResetCode();">
@@ -235,7 +268,6 @@
         <button type="button" class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
       </div>
 
-      <!-- Complete Password Reset View -->
       <div id="resetPasswordForm" class="hidden">
         <h1>🔐 Enter New Password 🔐</h1>
         <form onsubmit="event.preventDefault(); completePasswordReset();">
@@ -249,92 +281,93 @@
 
     <!-- MAIN APPLICATION SCREEN -->
     <div id="appScreen" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <span style="font-weight:600; color:#ff69b4;">👤 Logged in as: <span id="userDisplay"></span></span>
-        <button class="btn-sub" onclick="logout()" style="width:auto; padding:6px 14px; margin:0;">Logout</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-weight:600; color:#ff69b4; font-size:13px;">👤 <span id="userDisplay"></span></span>
+        <button class="btn-sub" onclick="logout()" style="width:auto; padding:4px 10px; margin:0; font-size:12px;">Logout</button>
       </div>
 
       <h2>🎀 Budget Planner 🎀</h2>
 
       <form id="budgetForm" onsubmit="event.preventDefault(); save();">
-        <label style="font-size:13px; color:#666; font-weight:500;">Date:</label>
-        <input type="date" id="d">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="d">
+        </div>
 
-        <label style="font-size:13px; color:#666; font-weight:500;">Period:</label>
-        <select id="p">
-          <option value="Weekly">Weekly</option>
-          <option value="Fortnightly">Fortnightly</option>
-          <option value="Monthly">Monthly</option>
-        </select>
+        <div class="form-group">
+          <label>Period</label>
+          <select id="p">
+            <option value="Weekly">Weekly</option>
+            <option value="Fortnightly">Fortnightly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
 
-        <label style="font-size:13px; color:#666; font-weight:500;">Income Amount ($):</label>
-        <input type="number" id="i" value="0" placeholder="Income Amount">
+        <div class="form-group">
+          <label>Income Amount ($)</label>
+          <input type="number" id="i" value="0" placeholder="0">
+        </div>
 
-        <h3>Expenses</h3>
-        <table>
-          <tr>
-            <td colspan="2"><strong>📱 Subscriptions</strong></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Netflix/Streaming</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Gym / Fitness</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>✏️ Custom: <input type="text" id="sub_other_title" class="custom-input" placeholder="Name..."></td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
+        <!-- EXPENSES SECTION -->
+        <div class="section-title">
+          <span>📱 Subscriptions</span>
+          <button type="button" class="btn-add" onclick="addCustomRow('subContainer')">➕ Add Item</button>
+        </div>
+        <div class="row">
+          <label>Netflix / Streaming</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div class="row">
+          <label>Gym / Fitness</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div id="subContainer"></div>
 
-          <tr>
-            <td colspan="2"><strong>🚗 Transport</strong></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Fuel / Public Transport</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>✏️ Custom: <input type="text" id="trans_other_title" class="custom-input" placeholder="Name..."></td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
+        <div class="section-title">
+          <span>🚗 Transport</span>
+          <button type="button" class="btn-add" onclick="addCustomRow('transContainer')">➕ Add Item</button>
+        </div>
+        <div class="row">
+          <label>Fuel / Public Transport</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div id="transContainer"></div>
 
-          <tr>
-            <td colspan="2"><strong>🏠 Bills</strong></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Electricity / Power</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Rent / Mortgage</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Gas</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>Water</td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-          <tr class="sub-row">
-            <td>✏️ Custom: <input type="text" id="bills_other_title" class="custom-input" placeholder="Name..."></td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
+        <div class="section-title">
+          <span>🏠 Bills</span>
+          <button type="button" class="btn-add" onclick="addCustomRow('billsContainer')">➕ Add Item</button>
+        </div>
+        <div class="row">
+          <label>Electricity / Power</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div class="row">
+          <label>Rent / Mortgage</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div class="row">
+          <label>Gas</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div class="row">
+          <label>Water</label>
+          <input class="e" type="number" value="0">
+        </div>
+        <div id="billsContainer"></div>
 
-          <tr>
-            <td><strong>🍲 Eating Out</strong></td>
-            <td><input class="e" type="number" value="0"></td>
-          </tr>
-        </table>
+        <div class="section-title">
+          <span>🍲 Food</span>
+        </div>
+        <div class="row">
+          <label>Eating Out</label>
+          <input class="e" type="number" value="0">
+        </div>
 
         <p class="sum">💖 Remaining: $<span id="b">0.00</span></p>
         <button type="submit" class="btn-main" id="saveBtn">💾 Save Budget</button>
       </form>
 
-      <h2>📜 Saved & Shared History</h2>
+      <h2>📜 History</h2>
       <div id="h"></div>
     </div>
   </div>
@@ -343,7 +376,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-  <!-- EMBEDDED JAVASCRIPT DIRECTLY TO PREVENT BROWSER CACHING ISSUES -->
   <script>
     let currentUser = localStorage.currentUser || null;
     let editingId = null;
@@ -364,14 +396,10 @@
 
     try {
       if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.database();
       }
-    } catch (e) {
-      console.warn("Running in local storage fallback mode.");
-    }
+    } catch (e) { console.warn("Running in local storage fallback mode."); }
 
     let globalBudgets = [];
 
@@ -385,14 +413,31 @@
     } else {
       try {
         globalBudgets = JSON.parse(localStorage.getItem('budget_tracker_records') || '[]');
-      } catch(e) {
-        globalBudgets = [];
-      }
+      } catch(e) { globalBudgets = []; }
+    }
+
+    /* Add Multiple Dynamic Rows Function */
+    function addCustomRow(containerId, title = '', val = 0) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const row = document.createElement('div');
+      row.className = 'row custom-row';
+      row.innerHTML = `
+        <input type="text" class="custom-title" placeholder="Name..." value="${title}">
+        <input class="e" type="number" value="${val}">
+      `;
+      container.appendChild(row);
+
+      row.querySelectorAll('input').forEach(input => {
+        input.oninput = calc;
+      });
+
+      calc();
     }
 
     function showView(viewId) {
-      const views = ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'];
-      views.forEach(id => {
+      ['loginForm', 'signupForm', 'verifySignUpForm', 'forgotForm', 'resetPasswordForm'].forEach(id => {
         let el = document.getElementById(id);
         if (el) el.classList.add('hidden');
       });
@@ -405,16 +450,10 @@
     }
 
     function handleLogin() {
-      let userEl = document.getElementById('loginUsername');
-      let passEl = document.getElementById('loginPassword');
+      let user = document.getElementById('loginUsername').value.trim();
+      let pass = document.getElementById('loginPassword').value.trim();
 
-      let user = userEl ? userEl.value.trim() : '';
-      let pass = passEl ? passEl.value.trim() : '';
-
-      if (!user || !pass) {
-        alert("Please enter both a username and password! 💕");
-        return;
-      }
+      if (!user || !pass) { alert("Please enter both username and password! 💕"); return; }
 
       let users = JSON.parse(localStorage.users || '{}');
       if (!users[user]) {
@@ -422,10 +461,7 @@
         localStorage.users = JSON.stringify(users);
       }
 
-      if (db) {
-        db.ref('users/' + user).set({ password: pass }).catch(() => {});
-      }
-
+      if (db) db.ref('users/' + user).set({ password: pass }).catch(() => {});
       loginUser(user);
     }
 
@@ -433,13 +469,9 @@
       currentUser = user;
       localStorage.currentUser = user;
 
-      let auth = document.getElementById('authScreen');
-      let app = document.getElementById('appScreen');
-      let uDisp = document.getElementById('userDisplay');
-
-      if (auth) auth.classList.add('hidden');
-      if (app) app.classList.remove('hidden');
-      if (uDisp) uDisp.textContent = user;
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+      document.getElementById('userDisplay').textContent = user;
 
       document.querySelectorAll('#authScreen input').forEach(input => input.value = '');
       load();
@@ -448,11 +480,8 @@
     function logout() {
       currentUser = null;
       localStorage.removeItem('currentUser');
-      let auth = document.getElementById('authScreen');
-      let app = document.getElementById('appScreen');
-
-      if (app) app.classList.add('hidden');
-      if (auth) auth.classList.remove('hidden');
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('authScreen').classList.remove('hidden');
       showView('loginForm');
       resetForm();
     }
@@ -462,59 +491,35 @@
       let email = document.getElementById('signUpEmail').value.trim();
       let pass = document.getElementById('signUpPassword').value.trim();
 
-      if (!user || !email || !pass) {
-        alert("Please fill in all details! 💕");
-        return;
-      }
+      if (!user || !email || !pass) { alert("Please fill in all details! 💕"); return; }
 
       generatedCode = generateCode();
       pendingSignUpData = { username: user, email: email, password: pass };
-
-      alert(`📧 [SIMULATED EMAIL SENT TO: ${email}]\n\nYour Verification Code is: ${generatedCode}`);
+      alert(`📧 Verification Code: ${generatedCode}`);
       showView('verifySignUpForm');
     }
 
     function completeSignUp() {
       let inputCode = document.getElementById('verifySignUpCode').value.trim();
-      
       if (inputCode === generatedCode) {
         let users = JSON.parse(localStorage.users || '{}');
-        users[pendingSignUpData.username] = {
-          password: pendingSignUpData.password,
-          email: pendingSignUpData.email
-        };
+        users[pendingSignUpData.username] = { password: pendingSignUpData.password, email: pendingSignUpData.email };
         localStorage.users = JSON.stringify(users);
-        
-        alert("Email verified successfully! 🎉 Logging you in...");
+        alert("Account created! 🎉");
         loginUser(pendingSignUpData.username);
-        pendingSignUpData = null;
-        generatedCode = null;
-      } else {
-        alert("Incorrect verification code! Please check and try again. 💖");
-      }
+      } else { alert("Incorrect code!"); }
     }
 
     function sendResetCode() {
       let email = document.getElementById('forgotEmail').value.trim();
       let users = JSON.parse(localStorage.users || '{}');
-      
-      let foundUser = null;
-      for (let u in users) {
-        if (users[u].email === email) {
-          foundUser = u;
-          break;
-        }
-      }
+      let foundUser = Object.keys(users).find(u => users[u].email === email);
 
-      if (!foundUser) {
-        alert("No account found registered with that email address! 🌸");
-        return;
-      }
+      if (!foundUser) { alert("No account with that email!"); return; }
 
       targetResetUser = foundUser;
       generatedCode = generateCode();
-
-      alert(`📧 [SIMULATED EMAIL SENT TO: ${email}]\n\nYour Password Reset Code is: ${generatedCode}`);
+      alert(`📧 Password Reset Code: ${generatedCode}`);
       showView('resetPasswordForm');
     }
 
@@ -522,65 +527,42 @@
       let codeInput = document.getElementById('resetCode').value.trim();
       let newPass = document.getElementById('newPassword').value.trim();
 
-      if (!codeInput || !newPass) {
-        alert("Please enter the verification code and your new password! 💕");
-        return;
-      }
-
       if (codeInput === generatedCode) {
         let users = JSON.parse(localStorage.users || '{}');
         users[targetResetUser].password = newPass;
         localStorage.users = JSON.stringify(users);
-
-        alert("Password updated successfully! ✨ Please log in with your new password.");
+        alert("Password updated! ✨");
         showView('loginForm');
-        targetResetUser = null;
-        generatedCode = null;
-      } else {
-        alert("Incorrect verification code! Please check and try again. 💖");
-      }
+      } else { alert("Incorrect code!"); }
     }
 
     function calc() {
-      let iEl = document.getElementById('i');
-      let bEl = document.getElementById('b');
-      let inc = iEl ? (+iEl.value || 0) : 0;
+      let inc = +document.getElementById('i').value || 0;
       let t = 0;
-
       document.querySelectorAll('.e').forEach(x => t += (+x.value || 0));
-      if (bEl) bEl.textContent = (inc - t).toFixed(2);
+      document.getElementById('b').textContent = (inc - t).toFixed(2);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      let iEl = document.getElementById('i');
-      if (iEl) iEl.oninput = calc;
+      document.getElementById('i').oninput = calc;
       document.querySelectorAll('.e').forEach(x => x.oninput = calc);
       calc();
       if (currentUser) loginUser(currentUser);
     });
 
     function save() {
-      if (!currentUser) {
-        alert("Please log in first! 💕");
-        return;
-      }
-
-      let dEl = document.getElementById('d');
-      let pEl = document.getElementById('p');
-      let iEl = document.getElementById('i');
-      let bEl = document.getElementById('b');
-      let saveBtn = document.getElementById('saveBtn');
-
-      let dateVal = dEl ? dEl.value : '';
-      let periodVal = pEl ? pEl.value : 'Weekly';
-      let incomeVal = iEl ? (+iEl.value || 0) : 0;
-      let balVal = bEl ? (+bEl.textContent || 0) : 0;
+      if (!currentUser) return alert("Please log in first!");
 
       let expenses = Array.from(document.querySelectorAll('.e')).map(x => +x.value || 0);
-
-      let subTitle = document.getElementById('sub_other_title');
-      let transTitle = document.getElementById('trans_other_title');
-      let billsTitle = document.getElementById('bills_other_title');
+      
+      let customData = [];
+      document.querySelectorAll('.custom-row').forEach(row => {
+        let title = row.querySelector('.custom-title').value;
+        let val = +row.querySelector('.e').value || 0;
+        if (title.trim() !== "") {
+          customData.push({ title: title, val: val });
+        }
+      });
 
       let recId = editingId !== null ? editingId : Date.now().toString();
 
@@ -588,26 +570,18 @@
         id: recId,
         owner: currentUser,
         sharedWith: editingId !== null ? (globalBudgets.find(b => b.id === editingId)?.sharedWith || []) : [],
-        date: dateVal,
-        period: periodVal,
-        income: incomeVal,
-        balance: balVal,
+        date: document.getElementById('d').value,
+        period: document.getElementById('p').value,
+        income: +document.getElementById('i').value || 0,
+        balance: +document.getElementById('b').textContent || 0,
         expenses: expenses,
-        customs: {
-          sub: subTitle ? subTitle.value : '',
-          trans: transTitle ? transTitle.value : '',
-          bills: billsTitle ? billsTitle.value : ''
-        }
+        customItems: customData
       };
 
       if (db) {
         db.ref('budgets/' + recId).set(recordData).then(() => {
-          alert("Budget saved online! 🎉");
+          alert("Saved! 🎉");
           resetForm();
-          editingId = null;
-          if (saveBtn) saveBtn.textContent = '💾 Save Budget';
-        }).catch(() => {
-          saveLocally(recordData);
         });
       } else {
         saveLocally(recordData);
@@ -616,89 +590,57 @@
 
     function saveLocally(recordData) {
       let idx = globalBudgets.findIndex(b => b.id === recordData.id);
-      if (idx !== -1) {
-        globalBudgets[idx] = recordData;
-      } else {
-        globalBudgets.push(recordData);
-      }
+      if (idx !== -1) globalBudgets[idx] = recordData;
+      else globalBudgets.push(recordData);
+      
       localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
-      alert("Budget saved successfully! 🎉");
+      alert("Saved! 🎉");
       resetForm();
-      editingId = null;
-      let saveBtn = document.getElementById('saveBtn');
-      if (saveBtn) saveBtn.textContent = '💾 Save Budget';
       load();
     }
 
     function load() {
       if (!currentUser) return;
-
       let hEl = document.getElementById('h');
-      if (!hEl) return;
-
-      let userBudgets = globalBudgets.filter(r => 
-        r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser))
-      );
+      let userBudgets = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser)));
 
       if (userBudgets.length === 0) {
-        hEl.innerHTML = "<p style='text-align:center; color:#888;'>No saved or shared budgets yet!</p>";
+        hEl.innerHTML = "<p style='text-align:center; color:#888; font-size:13px;'>No saved budgets yet!</p>";
         return;
       }
 
-      hEl.innerHTML = userBudgets.map((r) => {
-        let isOwner = r.owner === currentUser;
-        let sharedBadge = !isOwner 
-          ? `<div class="badge-shared">Shared by @${r.owner}</div>` 
-          : (r.sharedWith && r.sharedWith.length > 0 ? `<div class="badge-shared">Shared with: ${r.sharedWith.join(', ')}</div>` : '');
-
-        return `
-          <div class="history-item">
-            <div class="history-info">
-              🌸 <strong>${r.date || 'No Date'}</strong> | ${r.period} <br>
-              💵 Income: $${r.income} | 💖 Remaining: $${r.balance}
-              ${sharedBadge}
-            </div>
-            <div class="history-actions">
-              <button class="btn-share" onclick="shareRecord('${r.id}')">🤝 Share</button>
-              <button class="btn-edit" onclick="editRecord('${r.id}')">✏️ Edit</button>
-              <button class="btn-delete" onclick="deleteRecord('${r.id}')">🗑️ Delete</button>
-            </div>
+      hEl.innerHTML = userBudgets.map(r => `
+        <div class="history-item">
+          <div class="history-info">
+            🌸 <strong>${r.date || 'No Date'}</strong> | ${r.period} <br>
+            💵 Income: $${r.income} | 💖 Remaining: $${r.balance}
+            ${!r.owner === currentUser ? `<div class="badge-shared">Shared by @${r.owner}</div>` : ''}
           </div>
-        `;
-      }).join('');
+          <div class="history-actions">
+            <button class="btn-share" onclick="shareRecord('${r.id}')">🤝 Share</button>
+            <button class="btn-edit" onclick="editRecord('${r.id}')">✏️ Edit</button>
+            <button class="btn-delete" onclick="deleteRecord('${r.id}')">🗑️ Delete</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function shareRecord(id) {
-      let targetUser = prompt("Enter the username of the person you want to share this budget with: 💕");
-      if (!targetUser) return;
-
-      targetUser = targetUser.trim();
-
-      if (targetUser === currentUser) {
-        alert("You cannot share a budget with yourself! 🌸");
-        return;
-      }
+      let targetUser = prompt("Enter username to share with:");
+      if (!targetUser || targetUser === currentUser) return;
 
       let item = globalBudgets.find(b => b.id === id);
-
       if (item) {
         let currentShared = item.sharedWith || [];
-        if (currentShared.includes(targetUser)) {
-          alert(`This budget is already shared with ${targetUser}! 🌸`);
-          return;
-        }
-        currentShared.push(targetUser);
+        if (!currentShared.includes(targetUser)) currentShared.push(targetUser);
         
-        if (db) {
-          db.ref(`budgets/${id}/sharedWith`).set(currentShared).then(() => {
-            alert(`Success! Shared live with @${targetUser}. ✨`);
-          });
-        } else {
+        if (db) db.ref(`budgets/${id}/sharedWith`).set(currentShared);
+        else {
           item.sharedWith = currentShared;
           localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
-          alert(`Success! Shared locally with @${targetUser}. ✨`);
           load();
         }
+        alert("Shared! ✨");
       }
     }
 
@@ -706,14 +648,20 @@
       let item = globalBudgets.find(b => b.id === id);
       if (!item) return;
 
-      let dEl = document.getElementById('d');
-      let pEl = document.getElementById('p');
-      let iEl = document.getElementById('i');
-      let saveBtn = document.getElementById('saveBtn');
+      document.getElementById('d').value = item.date || '';
+      document.getElementById('p').value = item.period || 'Weekly';
+      document.getElementById('i').value = item.income || 0;
 
-      if (dEl) dEl.value = item.date || '';
-      if (pEl) pEl.value = item.period || 'Weekly';
-      if (iEl) iEl.value = item.income || 0;
+      // Clear dynamic rows first
+      document.getElementById('subContainer').innerHTML = '';
+      document.getElementById('transContainer').innerHTML = '';
+      document.getElementById('billsContainer').innerHTML = '';
+
+      if (item.customItems) {
+        item.customItems.forEach(c => {
+          addCustomRow('subContainer', c.title, c.val);
+        });
+      }
 
       let expInputs = document.querySelectorAll('.e');
       if (item.expenses) {
@@ -722,62 +670,33 @@
         });
       }
 
-      let subTitle = document.getElementById('sub_other_title');
-      let transTitle = document.getElementById('trans_other_title');
-      let billsTitle = document.getElementById('bills_other_title');
-
-      if (item.customs) {
-        if (subTitle) subTitle.value = item.customs.sub || '';
-        if (transTitle) transTitle.value = item.customs.trans || '';
-        if (billsTitle) billsTitle.value = item.customs.bills || '';
-      }
-
       calc();
       editingId = id;
-      if (saveBtn) saveBtn.textContent = '🔄 Update Shared Budget';
+      document.getElementById('saveBtn').textContent = '🔄 Update Budget';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function deleteRecord(id) {
-      if (confirm("Are you sure you want to delete this budget item? 🗑️")) {
-        let item = globalBudgets.find(b => b.id === id);
-
-        if (item) {
-          if (item.owner === currentUser) {
-            if (db) {
-              db.ref('budgets/' + id).remove();
-            } else {
-              globalBudgets = globalBudgets.filter(b => b.id !== id);
-              localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
-            }
-          } else {
-            let updatedShared = (item.sharedWith || []).filter(u => u !== currentUser);
-            if (db) {
-              db.ref(`budgets/${id}/sharedWith`).set(updatedShared);
-            } else {
-              item.sharedWith = updatedShared;
-              localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
-            }
-          }
+      if (confirm("Delete this budget item? 🗑️")) {
+        if (db) db.ref('budgets/' + id).remove();
+        else {
+          globalBudgets = globalBudgets.filter(b => b.id !== id);
+          localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
         }
-
-        let saveBtn = document.getElementById('saveBtn');
-        if (editingId === id) {
-          resetForm();
-          editingId = null;
-          if (saveBtn) saveBtn.textContent = '💾 Save Budget';
-        }
+        resetForm();
         load();
       }
     }
 
     function resetForm() {
-      let dEl = document.getElementById('d');
-      let iEl = document.getElementById('i');
-      if (dEl) dEl.value = '';
-      if (iEl) iEl.value = 0;
+      document.getElementById('d').value = '';
+      document.getElementById('i').value = 0;
+      document.getElementById('subContainer').innerHTML = '';
+      document.getElementById('transContainer').innerHTML = '';
+      document.getElementById('billsContainer').innerHTML = '';
       document.querySelectorAll('.e').forEach(x => x.value = 0);
-      document.querySelectorAll('.custom-input').forEach(x => x.value = '');
+      editingId = null;
+      document.getElementById('saveBtn').textContent = '💾 Save Budget';
       calc();
     }
   </script>
