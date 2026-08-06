@@ -1,163 +1,200 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>BudgetTracker 🎀</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-<!-- 1. Connects the CSS Styling File -->
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cute Multi-Device Budget Tracker</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #fcf4f8; margin: 0; padding: 20px; display: flex; justify-content: center; }
+    .card { background: white; width: 100%; max-width: 520px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .hidden { display: none !important; }
+    h1, h2, h3 { text-align: center; color: #ff69b4; margin-top: 0; }
+    .cat-img { display: block; width: 100%; max-width: 320px; margin: 15px auto; border-radius: 12px; }
+    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ffd1dc; outline: none; font-size: 14px; }
+    input:focus, select:focus { border-color: #ff69b4; box-shadow: 0 0 5px rgba(255,105,180,0.3); }
+    .btn-main { background: #ff69b4; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-main:hover { background: #ff4797; }
+    .btn-sub { background: #f0f0f0; color: #555; border: none; cursor: pointer; }
+    .auth-links { display: flex; justify-content: space-between; font-size: 12px; }
+    .auth-links a { color: #ff69b4; text-decoration: none; cursor: pointer; }
+    table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+    td { padding: 8px 4px; }
+    .sub-row td { font-size: 13px; color: #555; }
+    .sum { font-weight: bold; font-size: 18px; color: #ff69b4; text-align: center; margin: 15px 0; }
+    
+    /* History List & Action Button Styling */
+    .history-item { 
+      background: #fff0f5; 
+      padding: 14px; 
+      margin-top: 10px; 
+      border-radius: 12px; 
+      display: flex; 
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid #ffe4e1;
+    }
+    .history-info { font-size: 13px; color: #333; line-height: 1.4; }
+    .history-actions { display: flex; gap: 6px; }
+    .history-actions button { margin: 0; padding: 6px 10px; font-size: 12px; border-radius: 6px; border: none; color: white; cursor: pointer; font-weight: bold; }
+    .btn-share { background: #ff77a9; }
+    .btn-edit { background: #4a90e2; }
+    .btn-delete { background: #e74c3c; }
+    .badge-shared { display: block; font-size: 11px; color: #888; margin-top: 4px; }
+    .custom-input { width: 100% !important; margin: 0 !important; }
+  </style>
 </head>
 <body>
 
-<!-- AUTH CONTAINER -->
-<div id="authScreen" class="card auth-card">
-  <!-- 1. LOGIN FORM -->
-  <div id="loginForm">
-    <h1>✨ Welcome! Login ✨</h1>
-    <div class="auth-form">
-      <input type="text" id="loginUsername" placeholder="Username">
-      <div class="cat-greeting">
-  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z2eDRwbHF6a3ZyeTYwYmkxb3J0aXU1ZTFoNWNuaWRxd3p5c3VpcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BzyTuYCmvSORqs1ABM/giphy.gif" alt="Cute Cat" class="login-cat">
-  <p class="cat-text">Meowdy! Ready to save some treats? 🐾</p>
-</div>
-      <input type="password" id="loginPassword" placeholder="Password">
-      <button class="btn-main" onclick="handleLogin()">Login 🔑</button>
-    </div>
-    <div class="auth-links">
-      <span class="toggle-auth" onclick="showView('signupForm')">Create Account</span>
-      <span class="toggle-auth" onclick="showView('forgotForm')">Forgot Password?</span>
-    </div>
-  </div>
+  <div class="card">
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen">
+      <!-- Login View -->
+      <div id="loginForm">
+        <h1>✨ Welcome! Login ✨</h1>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" alt="Cute Cat">
+        <p style="text-align:center; font-size:13px; color:#666;">Meowdy! Ready to save some treats? 🐾</p>
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button class="btn-main" onclick="handleLogin()">Login 🔑</button>
+        <div class="auth-links">
+          <a onclick="showView('signupForm')">Create Account</a>
+          <a onclick="showView('forgotForm')">Forgot Password?</a>
+        </div>
+      </div>
 
-  <!-- 2. SIGN UP FORM -->
-  <div id="signupForm" class="hidden">
-    <h1>✨ Create Account ✨</h1>
-    <div class="auth-form">
-      <input type="text" id="signUpUsername" placeholder="Username">
-      <input type="email" id="signUpEmail" placeholder="Email Address 📧">
-      <input type="password" id="signUpPassword" placeholder="Password">
-      <button class="btn-main" onclick="sendSignUpCode()">Send Verification Code 📩</button>
-    </div>
-    <div class="auth-links" style="justify-content: center;">
-      <span class="toggle-auth" onclick="showView('loginForm')">Back to Login</span>
-    </div>
-  </div>
+      <!-- Sign Up View -->
+      <div id="signupForm" class="hidden">
+        <h1>🌸 Create Account 🌸</h1>
+        <input type="text" id="signUpUsername" placeholder="Choose Username">
+        <input type="email" id="signUpEmail" placeholder="Your Email Address">
+        <input type="password" id="signUpPassword" placeholder="Choose Password">
+        <button class="btn-main" onclick="sendSignUpCode()">Send Verification Code 📧</button>
+        <button class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
+      </div>
 
-  <!-- 3. EMAIL VERIFICATION FORM -->
-  <div id="verifySignUpForm" class="hidden">
-    <h1>✉️ Verify Email</h1>
-    <p style="font-size: 0.9em; color: #666;">Enter the verification code sent to your email.</p>
-    <div class="auth-form">
-      <input type="text" id="verifySignUpCode" placeholder="Enter 6-digit Code">
-      <button class="btn-main" onclick="completeSignUp()">Verify & Register 🌸</button>
-    </div>
-    <div class="auth-links" style="justify-content: center;">
-      <span class="toggle-auth" onclick="showView('signupForm')">Back to Sign Up</span>
-    </div>
-  </div>
+      <!-- Verify Code View -->
+      <div id="verifySignUpForm" class="hidden">
+        <h1>📩 Verify Email 📩</h1>
+        <p style="text-align:center; font-size:13px; color:#666;">Enter the 6-digit code sent to your email.</p>
+        <input type="text" id="verifySignUpCode" placeholder="6-digit code">
+        <button class="btn-main" onclick="completeSignUp()">Verify & Create Account 🎉</button>
+        <button class="btn-sub" onclick="showView('signupForm')">Back</button>
+      </div>
 
-  <!-- 4. FORGOT PASSWORD FORM -->
-  <div id="forgotForm" class="hidden">
-    <h1>🔑 Reset Password</h1>
-    <p style="font-size: 0.9em; color: #666;">Enter your registered email address.</p>
-    <div class="auth-form">
-      <input type="email" id="forgotEmail" placeholder="Email Address 📧">
-      <button class="btn-main" onclick="sendResetCode()">Send Reset Code 📩</button>
-    </div>
-    <div class="auth-links" style="justify-content: center;">
-      <span class="toggle-auth" onclick="showView('loginForm')">Back to Login</span>
-    </div>
-  </div>
+      <!-- Forgot Password View -->
+      <div id="forgotForm" class="hidden">
+        <h1>🔑 Reset Password 🔑</h1>
+        <input type="email" id="forgotEmail" placeholder="Enter your registered email">
+        <button class="btn-main" onclick="sendResetCode()">Send Reset Code 📧</button>
+        <button class="btn-sub" onclick="showView('loginForm')">Back to Login</button>
+      </div>
 
-  <!-- 5. VERIFY RESET CODE & CHANGE PASSWORD -->
-  <div id="resetPasswordForm" class="hidden">
-    <h1>🌸 Create New Password</h1>
-    <div class="auth-form">
-      <input type="text" id="resetCode" placeholder="Verification Code">
-      <input type="password" id="newPassword" placeholder="New Password">
-      <button class="btn-main" onclick="completePasswordReset()">Update Password 💖</button>
+      <!-- Complete Password Reset View -->
+      <div id="resetPasswordForm" class="hidden">
+        <h1>🔐 Enter New Password 🔐</h1>
+        <input type="text" id="resetCode" placeholder="6-digit verification code">
+        <input type="password" id="newPassword" placeholder="New Password">
+        <button class="btn-main" onclick="completePasswordReset()">Update Password ✨</button>
+        <button class="btn-sub" onclick="showView('loginForm')">Cancel</button>
+      </div>
     </div>
-    <div class="auth-links" style="justify-content: center;">
-      <span class="toggle-auth" onclick="showView('loginForm')">Back to Login</span>
-    </div>
-  </div>
-</div>
 
-<!-- MAIN BUDGET TRACKER APP -->
-<div id="appScreen" class="card hidden">
-  <div class="header-user">
-    <span>🌸 Hello, <strong id="userDisplay"></strong>!</span>
-    <button class="btn-logout" onclick="logout()">Logout 🚪</button>
-  </div>
+    <!-- MAIN APPLICATION SCREEN -->
+    <div id="appScreen" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <span style="font-weight:bold; color:#ff69b4;">👤 Logged in as: <span id="userDisplay"></span></span>
+        <button class="btn-sub" onclick="logout()" style="width:auto; padding:6px 12px; margin:0;">Logout</button>
+      </div>
 
-  <h1>✨ Budget Tracker ✨</h1>
-  
-  <div class="controls">
-    <label>📅 Date <input type="date" id="d"></label>
-    <label>🗓️ Period 
+      <h2>🎀 Budget Planner 🎀</h2>
+
+      <label style="font-size:12px; color:#666;">Date:</label>
+      <input type="date" id="d">
+
+      <label style="font-size:12px; color:#666;">Period:</label>
       <select id="p">
-        <option>Weekly</option>
-        <option>Fortnightly</option>
-        <option>Monthly</option>
+        <option value="Weekly">Weekly</option>
+        <option value="Fortnightly">Fortnightly</option>
+        <option value="Monthly">Monthly</option>
       </select>
-    </label>
-    <label>💰 Income $<input id="i" type="number" value="0"></label>
+
+      <label style="font-size:12px; color:#666;">Income Amount ($):</label>
+      <input type="number" id="i" value="0" placeholder="Income Amount">
+
+      <h3>Expenses</h3>
+      <table>
+        <tr>
+          <td colspan="2"><strong>📱 Subscriptions</strong></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Netflix/Streaming</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Gym / Fitness</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>✏️ Custom: <input type="text" id="sub_other_title" class="custom-input" placeholder="Name..."></td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+
+        <tr>
+          <td colspan="2"><strong>🚗 Transport</strong></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Fuel / Public Transport</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>✏️ Custom: <input type="text" id="trans_other_title" class="custom-input" placeholder="Name..."></td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+
+        <tr>
+          <td colspan="2"><strong>🏠 Bills</strong></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Electricity / Power</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Rent / Mortgage</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Gas</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>Water</td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+        <tr class="sub-row">
+          <td>✏️ Custom: <input type="text" id="bills_other_title" class="custom-input" placeholder="Name..."></td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+
+        <tr>
+          <td><strong>🍲 Eating Out</strong></td>
+          <td><input class="e" type="number" value="0"></td>
+        </tr>
+      </table>
+
+      <p class="sum">💖 Remaining: $<span id="b">0.00</span></p>
+      <button class="btn-main" id="saveBtn" onclick="save()">💾 Save Budget</button>
+
+      <h2>📜 Saved & Shared History</h2>
+      <div id="h"></div>
+    </div>
   </div>
 
-  <table>
-    <tr><th>Category 🏷️</th><th>Amount ($) 💵</th></tr>
-    
-    <!-- Groceries -->
-    <tr><td><strong>🛒 Groceries</strong></td><td><input class="e" type="number" value="0"></td></tr>
-
-    <!-- Subscriptions -->
-    <tr><td colspan="2"><strong>📺 Subscriptions</strong></td></tr>
-    <tr class="sub-row"><td>🎬 Netflix</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>🍿 HBO</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>📦 Amazon Prime</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row">
-      <td>✏️ Other: <input type="text" id="sub_other_title" class="custom-input" placeholder="Name..."></td>
-      <td><input class="e" type="number" value="0"></td>
-    </tr>
-
-    <!-- Transportation -->
-    <tr><td colspan="2"><strong>🚗 Transportation</strong></td></tr>
-    <tr class="sub-row"><td>💳 Opal Card</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>⛽ Petrol</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row">
-      <td>✏️ Other: <input type="text" id="trans_other_title" class="custom-input" placeholder="Name..."></td>
-      <td><input class="e" type="number" value="0"></td>
-    </tr>
-
-    <!-- Bills -->
-    <tr><td colspan="2"><strong>🏠 Bills</strong></td></tr>
-    <tr class="sub-row"><td>⚡ Electricity</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>🔑 Rent</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>🔥 Gas</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row"><td>💧 Water</td><td><input class="e" type="number" value="0"></td></tr>
-    <tr class="sub-row">
-      <td>✏️ Other: <input type="text" id="bills_other_title" class="custom-input" placeholder="Name..."></td>
-      <td><input class="e" type="number" value="0"></td>
-    </tr>
-
-    <!-- Eating Out -->
-    <tr><td><strong>🍜 Eating Out</strong></td><td><input class="e" type="number" value="0"></td></tr>
-  </table>
-
-  <p class="sum">💖 Remaining: $<span id="b">0.00</span></p>
-  <button class="btn-main" id="saveBtn" onclick="save()">💾 Save Budget</button>
-
-  <h2>📜 Saved & Shared History</h2>
-  <div id="h"></div>
-</div>
-
-<!-- Firebase Cloud Database Libraries -->
+  <!-- Firebase Cloud Database Libraries -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-  <!-- Connect Your JavaScript Logic File (ONCE ONLY) -->
+  <!-- Connect Your JavaScript Logic File -->
   <script src="script.js"></script>
 </body>
 </html>
