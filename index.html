@@ -71,7 +71,6 @@
       box-shadow: 0 0 5px rgba(255,105,180,0.3); 
     }
 
-    /* Inputs & Selects full width when outside rows */
     #authScreen input, #authScreen button, select, #d, #i {
       width: 100%;
       padding: 10px 12px;
@@ -87,6 +86,7 @@
       cursor: pointer; 
       padding: 12px;
       font-size: 15px;
+      width: 100%;
     }
     
     .btn-main:hover { background: #ff4797; }
@@ -98,6 +98,7 @@
       cursor: pointer; 
       font-weight: 500;
       padding: 10px;
+      width: 100%;
     }
 
     .auth-links { 
@@ -109,7 +110,6 @@
     
     .auth-links a { color: #ff69b4; text-decoration: none; cursor: pointer; }
 
-    /* Clean Layout & Tight Alignment */
     .form-group {
       margin-bottom: 10px;
     }
@@ -132,7 +132,7 @@
       align-items: center;
     }
 
-    /* Row Layout: Tight spacing aligned nicely to words */
+    /* Row Layout */
     .row {
       display: flex;
       align-items: center;
@@ -183,8 +183,39 @@
       text-align: center; 
       margin: 16px 0; 
     }
-    
-    /* History List */
+
+    /* Archive Folder Button */
+    .archive-folder-btn {
+      background: #fff0f5;
+      border: 2px dashed #ff69b4;
+      color: #ff69b4;
+      padding: 14px;
+      border-radius: 14px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.2s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .archive-folder-btn:hover {
+      background: #ffe4e1;
+      transform: translateY(-2px);
+    }
+
+    /* History / Archive Screen */
+    .archive-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
     .history-item { 
       background: #fff0f5; 
       padding: 14px; 
@@ -193,19 +224,19 @@
       border: 1px solid #ffe4e1;
     }
 
-    .history-info { font-size: 13px; color: #333; line-height: 1.4; }
+    .history-info { font-size: 13px; color: #333; line-height: 1.5; }
     
     .history-actions { 
       display: flex; 
       gap: 6px; 
-      margin-top: 8px; 
+      margin-top: 10px; 
     }
 
     .history-actions button { 
       flex: 1; 
-      padding: 6px; 
+      padding: 8px 6px; 
       font-size: 12px; 
-      border-radius: 6px; 
+      border-radius: 8px; 
       border: none; 
       color: white; 
       cursor: pointer; 
@@ -215,7 +246,7 @@
     .btn-share { background: #ff69b4; }
     .btn-edit { background: #4a90e2; }
     .btn-delete { background: #e74c3c; }
-    .badge-shared { font-size: 11px; color: #777; margin-top: 2px; }
+    .badge-shared { font-size: 11px; color: #777; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -367,7 +398,20 @@
         <button type="submit" class="btn-main" id="saveBtn">💾 Save Budget</button>
       </form>
 
-      <h2>📜 History</h2>
+      <!-- ARCHIVE FOLDER ACCESS -->
+      <div class="archive-folder-btn" onclick="openArchiveScreen()">
+        📁 View Saved Archive (<span id="archiveCount">0</span>)
+      </div>
+    </div>
+
+    <!-- SEPARATE ARCHIVE FOLDER SCREEN -->
+    <div id="archiveScreen" class="hidden">
+      <div class="archive-header">
+        <button class="btn-sub" onclick="closeArchiveScreen()" style="width:auto; padding:6px 12px; margin:0; font-size:13px;">⬅️ Back to Planner</button>
+        <span style="font-weight:600; color:#ff69b4; font-size:13px;">👤 <span id="userDisplayArchive"></span></span>
+      </div>
+
+      <h2>📁 Saved File Archive</h2>
       <div id="h"></div>
     </div>
   </div>
@@ -408,6 +452,7 @@
         const data = snapshot.val();
         globalBudgets = data ? Object.values(data) : [];
         localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
+        updateArchiveCount();
         load();
       });
     } else {
@@ -416,7 +461,7 @@
       } catch(e) { globalBudgets = []; }
     }
 
-    /* Add Multiple Dynamic Rows Function */
+    /* Add Dynamic Custom Row & Intercept Enter Key */
     function addCustomRow(containerId, title = '', val = 0) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -429,11 +474,42 @@
       `;
       container.appendChild(row);
 
-      row.querySelectorAll('input').forEach(input => {
+      const inputs = row.querySelectorAll('input');
+      inputs.forEach(input => {
         input.oninput = calc;
+        
+        // Intercept Enter key: Add another row instead of saving budget
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomRow(containerId);
+            const newRows = container.querySelectorAll('.custom-row');
+            const lastRowInput = newRows[newRows.length - 1].querySelector('.custom-title');
+            if (lastRowInput) lastRowInput.focus();
+          }
+        });
       });
 
       calc();
+    }
+
+    function openArchiveScreen() {
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('archiveScreen').classList.remove('hidden');
+      document.getElementById('userDisplayArchive').textContent = currentUser;
+      load();
+    }
+
+    function closeArchiveScreen() {
+      document.getElementById('archiveScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+    }
+
+    function updateArchiveCount() {
+      if (!currentUser) return;
+      let count = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser))).length;
+      const archiveCountEl = document.getElementById('archiveCount');
+      if (archiveCountEl) archiveCountEl.textContent = count;
     }
 
     function showView(viewId) {
@@ -474,6 +550,7 @@
       document.getElementById('userDisplay').textContent = user;
 
       document.querySelectorAll('#authScreen input').forEach(input => input.value = '');
+      updateArchiveCount();
       load();
     }
 
@@ -481,6 +558,7 @@
       currentUser = null;
       localStorage.removeItem('currentUser');
       document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('archiveScreen').classList.add('hidden');
       document.getElementById('authScreen').classList.remove('hidden');
       showView('loginForm');
       resetForm();
@@ -580,8 +658,9 @@
 
       if (db) {
         db.ref('budgets/' + recId).set(recordData).then(() => {
-          alert("Saved! 🎉");
+          alert("Saved to Archive! 🎉");
           resetForm();
+          updateArchiveCount();
         });
       } else {
         saveLocally(recordData);
@@ -594,8 +673,9 @@
       else globalBudgets.push(recordData);
       
       localStorage.setItem('budget_tracker_records', JSON.stringify(globalBudgets));
-      alert("Saved! 🎉");
+      alert("Saved to Archive! 🎉");
       resetForm();
+      updateArchiveCount();
       load();
     }
 
@@ -604,8 +684,10 @@
       let hEl = document.getElementById('h');
       let userBudgets = globalBudgets.filter(r => r.owner === currentUser || (r.sharedWith && r.sharedWith.includes(currentUser)));
 
+      updateArchiveCount();
+
       if (userBudgets.length === 0) {
-        hEl.innerHTML = "<p style='text-align:center; color:#888; font-size:13px;'>No saved budgets yet!</p>";
+        hEl.innerHTML = "<p style='text-align:center; color:#888; font-size:13px;'>No saved budgets in archive yet!</p>";
         return;
       }
 
@@ -614,7 +696,7 @@
           <div class="history-info">
             🌸 <strong>${r.date || 'No Date'}</strong> | ${r.period} <br>
             💵 Income: $${r.income} | 💖 Remaining: $${r.balance}
-            ${!r.owner === currentUser ? `<div class="badge-shared">Shared by @${r.owner}</div>` : ''}
+            ${r.owner !== currentUser ? `<div class="badge-shared">Shared by @${r.owner}</div>` : ''}
           </div>
           <div class="history-actions">
             <button class="btn-share" onclick="shareRecord('${r.id}')">🤝 Share</button>
@@ -648,11 +730,12 @@
       let item = globalBudgets.find(b => b.id === id);
       if (!item) return;
 
+      closeArchiveScreen();
+
       document.getElementById('d').value = item.date || '';
       document.getElementById('p').value = item.period || 'Weekly';
       document.getElementById('i').value = item.income || 0;
 
-      // Clear dynamic rows first
       document.getElementById('subContainer').innerHTML = '';
       document.getElementById('transContainer').innerHTML = '';
       document.getElementById('billsContainer').innerHTML = '';
@@ -677,7 +760,7 @@
     }
 
     function deleteRecord(id) {
-      if (confirm("Delete this budget item? 🗑️")) {
+      if (confirm("Delete this budget item from archive? 🗑️")) {
         if (db) db.ref('budgets/' + id).remove();
         else {
           globalBudgets = globalBudgets.filter(b => b.id !== id);
